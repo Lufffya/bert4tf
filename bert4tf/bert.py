@@ -74,6 +74,7 @@ class BERT(object):
     def build(
         self,
         with_mlm: Optional[bool] = False,
+        with_pool: Optional[bool] = False,
         application: Optional[str] = 'encoder',
         additional_input_layers: Optional[Layer] = None,
         layer_norm_cond: Optional[Layer] = None,
@@ -85,6 +86,7 @@ class BERT(object):
         
         Args:
             with_mlm (bool, optional): -- 是否包含MLM部分. Defaults False
+            with_pool (bool, optional): -- 是否包含Pool部分. Defaults False
             application (str, optional): -- 决定模型类型. Defaults encoder
             additional_input_layers (layer, optional): -- 额外的输入层, 如果外部传入了张量作为条件,
             则需要把条件张量所依赖的所有输入层都添加进来, 作为输入层, 才能构建最终的模型. Defaults None
@@ -221,6 +223,17 @@ class BERT(object):
             x = feed_forward_norm(self.simplify([x, layer_norm_cond]))
         
         ### 根据剩余参数决定输出
+        ### Pooler部分(提取CLS向量)
+        if with_pool:
+            x = Lambda(function=lambda x: x[:, 0], name='Pooler')(x)
+            pooler_dense = Dense(
+                units=self.hidden_size,
+                activation=('tanh' if with_pool is True else with_pool),
+                kernel_initializer=self.initializer,
+                name='Pooler-Dense')
+            self.bert_layers[pooler_dense.name] = pooler_dense
+            x = pooler_dense(x)
+        
         ### Masked Language Model部分
         if with_mlm:
             mlm_dense = Dense(
@@ -277,7 +290,7 @@ class BERT(object):
         return self.attention_bias
     
     def compute_unilm_attention_bias(self, input):
-        """添加UniLM的Attention Mask(Seq2Seq模型用);
+        """添加UniLM的Attention Mask(Seq2Seq模型用)
         UniLM: https://arxiv.org/abs/1905.03197
         """
         # 其中source和target的分区, 由segment_ids来表示.

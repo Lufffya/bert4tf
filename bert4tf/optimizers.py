@@ -99,20 +99,20 @@ class AdaFactorBase(keras.optimizers.Optimizer):
         self.min_dim_size_to_factor = min_dim_size_to_factor
         self.exclude_from_parameter_scale = exclude_from_parameter_scale or []
 
-    @property
-    def learning_rate(self):
-        if self._learning_rate is None:
-            iterations = K.cast(self.iterations + 1, K.floatx())
-            learning_rate = K.minimum(1.0 / K.sqrt(iterations), 0.01)
-            if self.multiply_by_parameter_scale:
-                return learning_rate
-            else:
-                return learning_rate * 0.05
-        else:
-            if not hasattr(self, '__learning_rate'):
-                with K.name_scope(self.__class__.__name__):
-                    self.__learning_rate = K.variable(self._learning_rate, name='learning_rate')
-            return self.__learning_rate
+    # @property
+    # def learning_rate(self):
+    #     if self._learning_rate is None:
+    #         iterations = K.cast(self.iterations + 1, K.floatx())
+    #         learning_rate = K.minimum(1.0 / K.sqrt(iterations), 0.01)
+    #         if self.multiply_by_parameter_scale:
+    #             return learning_rate
+    #         else:
+    #             return learning_rate * 0.05
+    #     else:
+    #         if not hasattr(self, '__learning_rate'):
+    #             with K.name_scope(self.__class__.__name__):
+    #                 self.__learning_rate = K.variable(self._learning_rate, name='learning_rate')
+    #         return self.__learning_rate
 
     @property
     def beta2(self):
@@ -287,7 +287,7 @@ def extend_with_gradient_accumulation(BaseOptimizer):
                         ag_t = self._resource_scatter_add(ag, indices, grad)
 
             return ag_t
-
+        
         def get_config(self):
             config = {'grad_accum_steps': self.grad_accum_steps}
             base_config = super(NewOptimizer, self).get_config()

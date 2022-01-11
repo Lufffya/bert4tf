@@ -299,10 +299,7 @@ class Tokenizer(object):
         for i, ch in enumerate(text):
             if self._do_lower_case:
                 ch = lowercase_and_normalize(ch)
-            ch = ''.join([
-                c for c in ch
-                if not (ord(c) == 0 or ord(c) == 0xfffd or self._is_control(c))
-            ])
+            ch = ''.join([c for c in ch if not (ord(c) == 0 or ord(c) == 0xfffd or self._is_control(c))])
             normalized_text += ch
             char_mapping.extend([i] * len(ch))
 

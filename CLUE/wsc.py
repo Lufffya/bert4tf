@@ -94,7 +94,8 @@ class Evaluator(keras.callbacks.Callback):
             # model.save_weights('weights/wsc.weights')
         print(u'val_acc: %.5f, best_val_acc: %.5f\n' % (val_acc, self.best_val_acc))
 
-    def evaluate(self, data):
+    @staticmethod
+    def evaluate(data):
         total, right = 0., 0.
         for x_true, y_true in data:
             y_pred = model.predict(x_true).argmax(axis=1)
@@ -128,12 +129,7 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('weights/wsc.weights')
     # test_predict(in_file=data_path + 'wsc/test1.0.json', out_file='results/cluewsc10_predict.json')

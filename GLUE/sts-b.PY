@@ -1,0 +1,153 @@
+#! -*- coding:utf-8 -*-
+# STS-B: The Semantic Textual Similarity Benchmark(语义文本相似性基准测试)
+# describe: 语义相似度, 判断两个句子之前的语义相似度评分(0-5)
+# metric: Pearson and Spearman correlation coefficients
+
+from snippets import *
+from scipy.stats import pearsonr, spearmanr
+
+
+set_gelu('tanh')  # 切换gelu版本
+maxlen = 128
+batch_size = 32
+
+
+def load_data(filename):
+    """加载数据
+    单条格式: (文本1, 文本2, 标签y)
+    """
+    D = []
+    i = 1
+    with open(filename, encoding='utf-8') as f:
+        for l in f:
+            if i == 1:  # 跳过数据第一行
+                i = 2
+            else:
+                _, _, _, _, _, _, _, text1, text2, label = l.strip().split('\t')
+                D.append((text1, text2, float(label)))
+    return D
+
+
+def load_data_test(filename):
+    """加载数据
+    单条格式: (文本1, 文本2, 标签y)
+    """
+    D = []
+    i = 1
+    with open(filename, encoding='utf-8') as f:
+        for l in f:
+            if i == 1:  # 跳过数据第一行
+                i = 2
+            else:
+                _, _, _, _, _, _, _, text1, text2 = l.strip().split('\t')
+                D.append((text1, text2, 0))
+    return D
+
+
+# 加载数据集
+train_data = load_data(data_path + r'STS-B/train.tsv')
+valid_data = load_data(data_path + r'STS-B/dev.tsv')
+
+# 建立分词器
+tokenizer = Tokenizer(dict_path, do_lower_case=True)
+
+
+class data_generator(DataGenerator):
+    """数据生成器
+    """
+
+    def __iter__(self, random=False):
+        batch_token_ids, batch_segment_ids, batch_labels = [], [], []
+        for is_end, (text1, text2, label) in self.sample(random):
+            token_ids, segment_ids = tokenizer.encode(text1, text2, maxlen=maxlen)
+            batch_token_ids.append(token_ids)
+            batch_segment_ids.append(segment_ids)
+            batch_labels.append([label])
+            if len(batch_token_ids) == self.batch_size or is_end:
+                batch_token_ids = sequence_padding(batch_token_ids)
+                batch_segment_ids = sequence_padding(batch_segment_ids)
+                batch_labels = sequence_padding(batch_labels)
+                yield [batch_token_ids, batch_segment_ids], batch_labels
+                batch_token_ids, batch_segment_ids, batch_labels = [], [], []
+
+
+# 加载预训练模型
+bert = build_bert_model(
+    config_path=config_path,
+    checkpoint_path=checkpoint_path,
+    with_pool=True,
+    return_keras_model=False
+)
+
+output = Dropout(rate=0.1)(bert.model.output)
+output = Dense(units=1, kernel_initializer=bert.initializer)(output)
+model = keras.models.Model(bert.model.input, output)
+model.compile(loss='mse', optimizer=Adam(2e-5), metrics=['mse'])  # 用足够小的学习率
+model.summary()
+
+# 转换数据集
+train_generator = data_generator(train_data, batch_size)
+valid_generator = data_generator(valid_data, batch_size)
+
+
+class Evaluator(keras.callbacks.Callback):
+    """评估与保存
+    """
+
+    def __init__(self):
+        self.best_val_pearson_corr = 0.
+
+    def on_epoch_end(self, epoch, logs=None):
+        pearson_corr, spearman_corr = self.evaluate(valid_generator)
+        if pearson_corr > self.best_val_pearson_corr:
+            self.best_val_pearson_corr = pearson_corr
+            # model.save_weights('best_model_STS-B.weights')
+        print(u'pearson_corr: %.5f, spearman_corr: %.5f, best_pearson_corr: %.5f\n' % (pearson_corr, spearman_corr, self.best_val_pearson_corr))
+
+    @staticmethod
+    def evaluate(data):
+        y_true_all = np.array([], dtype=int)
+        y_pred_all = np.array([], dtype=int)
+        for x_true, y_true in data:
+            y_pred = model.predict(x_true)
+            y_pred_all = np.append(y_pred_all, y_pred)
+            y_true_all = np.append(y_true_all, y_true)
+
+        pearson_corr = pearsonr(y_pred_all, y_true_all)[0]
+        spearman_corr = spearmanr(y_pred_all, y_true_all)[0]
+        return pearson_corr, spearman_corr
+
+
+def test_predict(in_file, out_file):
+    """输出测试结果到文件
+    结果文件可以提交到 https://gluebenchmark.com 评测
+    """
+    test_data = load_data_test(in_file)
+    test_generator = data_generator(test_data, batch_size)
+
+    results = []
+    for x_true, _ in tqdm(test_generator, ncols=0):
+        y_pred = model.predict(x_true)
+        results.extend(y_pred)
+
+    with open(out_file, 'w', encoding='utf-8') as f:
+        csv_writer = csv.writer(f, delimiter='\t')
+        csv_writer.writerow(["index", "prediction"])
+        # 写入tsv文件内容
+        for i, pred in enumerate(results):
+            csv_writer.writerow([i, min(pred[0], 5.0)])  # 保证值不超过5.0
+        # 关闭文件
+    f.close()
+
+
+if __name__ == '__main__':
+    evaluator = Evaluator()
+
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=10, callbacks=[evaluator])
+
+    # model.load_weights('best_model_STS-B.weights')
+    # 预测测试集, 输出到结果文件
+    # test_predict(in_file = './datasets/STS-B/test.tsv', out_file = './results/STS-B.tsv')
+else:
+    pass
+    # model.load_weights('best_model_STS-B.weights')

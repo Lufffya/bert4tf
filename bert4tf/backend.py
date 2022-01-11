@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import numpy as np
 import tensorflow as tf
 import tensorflow.keras as keras
 import tensorflow.keras.backend as K
@@ -10,6 +11,30 @@ def infinity():
     """返回默认的代表无穷大的数值
     """
     return keras.utils.get_custom_objects().get('infinity', 1e12)
+
+
+def gelu_erf(x):
+    """基于Erf直接计算的gelu函数
+    """
+    return 0.5 * x * (1.0 + tf.math.erf(x / np.sqrt(2.0)))
+
+
+def gelu_tanh(x):
+    """基于Tanh近似计算的gelu函数
+    """
+    cdf = 0.5 * (1.0 + K.tanh((np.sqrt(2 / np.pi) * (x + 0.044715 * K.pow(x, 3)))))
+    return x * cdf
+
+
+def set_gelu(version):
+    """设置gelu版本
+    """
+    version = version.lower()
+    assert version in ['erf', 'tanh'], 'gelu version must be erf or tanh'
+    if version == 'erf':
+        keras.utils.get_custom_objects()['gelu'] = gelu_erf
+    else:
+        keras.utils.get_custom_objects()['gelu'] = gelu_tanh
 
 
 def sequence_masking(x, mask, value=0, axis=None):
@@ -76,8 +101,11 @@ def multilabel_categorical_crossentropy(y_true, y_pred):
 K.infinity = infinity
 sys.modules['keras.backend'] = K
 custom_objects = {
+    'gelu_erf': gelu_erf,
+    'gelu_tanh': gelu_tanh,
+    'gelu': gelu_erf,
     'root_mean_square': root_mean_square,
-    'multilabel_categorical_crossentropy': multilabel_categorical_crossentropy,
+    'multilabel_categorical_crossentropy': multilabel_categorical_crossentropy
 }
 
 keras.utils.get_custom_objects().update(custom_objects)

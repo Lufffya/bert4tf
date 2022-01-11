@@ -166,7 +166,8 @@ class Evaluator(keras.callbacks.Callback):
             # model.save_weights('weights/cmrc2018.weights')
         print(u'val_acc: %.5f, best_val_acc: %.5f\n' % (val_acc, self.best_val_acc))
 
-    def evaluate(self, data, generator):
+    @staticmethod
+    def evaluate(data, generator):
         Y_scores = np.empty((0, 1))
         Y_start_end = np.empty((0, 2), dtype=int)
         Y_true = np.empty((0, 2), dtype=int)
@@ -239,12 +240,7 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('weights/cmrc2018.weights')
     # test_predict(in_file=data_path + 'cmrc2018/test.json', out_file='results/cmrc2018_predict.json')

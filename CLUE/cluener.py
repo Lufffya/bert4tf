@@ -118,7 +118,8 @@ class Evaluator(keras.callbacks.Callback):
             # model.save_weights('weights/cluener.weights')
         print('valid:  f1: %.5f, precision: %.5f, recall: %.5f, best f1: %.5f\n' % (f1, precision, recall, self.best_val_f1))
 
-    def evaluate(self, data):
+    @staticmethod
+    def evaluate(data):
         X, Y, Z = 1e-10, 1e-10, 1e-10
         for x_true, y_true in data:
             y_pred = (model.predict(x_true) > 0).astype(int)
@@ -166,12 +167,7 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('weights/cluener.weights')
     # test_predict(in_file=data_path + 'cluener/test.json', out_file='results/cluener_predict.json')

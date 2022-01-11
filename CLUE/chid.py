@@ -16,7 +16,7 @@ from scipy.optimize import linear_sum_assignment
 # 基本参数
 num_classes = 10
 maxlen = 64
-batch_size = 12
+batch_size = 8
 epochs = 5
 
 
@@ -134,7 +134,7 @@ output = base.model.get_layer(last_layer).output
 output = pooling_layer(output)
 output = keras.layers.Dense(units=1, kernel_initializer=base.initializer)(output)
 model = keras.models.Model(base.model.input, output)
-model.compile(loss=multichoice_crossentropy, optimizer=optimizer2, metrics=[multichoice_accuracy])
+model.compile(loss=multichoice_crossentropy, optimizer=optimizer, metrics=[multichoice_accuracy])
 model.summary()
 
 
@@ -151,7 +151,8 @@ class Evaluator(keras.callbacks.Callback):
             # model.save_weights('weights/chid.weights')
         print(u'val_acc: %.5f, best_val_acc: %.5f\n' % (val_acc, self.best_val_acc))
 
-    def evaluate(self, data, generator):
+    @staticmethod
+    def evaluate(data, generator):
         total, right = 0, 0.
         logits = np.empty((0, num_classes))
         for x_true, y_true in tqdm(generator, ncols=0):
@@ -194,12 +195,7 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('weights/chid.weights')
     # test_predict(in_file=data_path + 'chid/test1.0.json', out_file='results/chid10_predict.json')

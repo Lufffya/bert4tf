@@ -9,13 +9,12 @@ from snippets import *
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator
 from bert4tf.snippets import truncate_sequences
-# os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 
 # 基本参数
 num_classes = 4
 maxlen = 512
-batch_size = 1
+batch_size = 2
 epochs = 10
 
 
@@ -115,7 +114,8 @@ class Evaluator(keras.callbacks.Callback):
             # model.save_weights('weights/c3.weights')
         print(u'val_acc: %.5f, best_val_acc: %.5f\n' % (val_acc, self.best_val_acc))
 
-    def evaluate(self, data):
+    @staticmethod
+    def evaluate(data):
         total, right = 0., 0.
         for x_true, y_true in data:
             y_pred = model.predict(x_true).reshape((-1, num_classes))
@@ -154,12 +154,7 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('weights/c3.weights')
     # test_predict(in_file=data_path + 'c3/test1.0.json', out_file='results/c310_predict.json')
