@@ -7,8 +7,8 @@ from bert4tf.snippets import to_array
 
 
 def bert_tf_embedding():
-    tokenizer = Tokenizer(dict_path, do_lower_case=True)  # 建立分词器
-    model = build_bert_model(config_path, checkpoint_path)  # 建立模型, 加载权重
+    tokenizer = Tokenizer(dict_path_zh, do_lower_case=True)  # 建立分词器
+    model = build_bert_model(config_path_zh, checkpoint_path_zh)  # 建立模型, 加载权重
 
     # 编码测试
     token_ids, segment_ids = tokenizer.encode(u'语言模型')

@@ -37,7 +37,7 @@ def load_data(filenames):
 
 # 加载并精简词表, 建立分词器
 token_dict, keep_tokens = load_vocab(
-    dict_path=dict_path,
+    dict_path=dict_path_zh,
     simplified=True,
     startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]']
 )
@@ -126,8 +126,8 @@ c = Reshape((128,))(c)
 
 # Bert模型
 model = build_bert_model(
-    config_path,
-    checkpoint_path,
+    config_path_zh,
+    checkpoint_path_zh,
     application='lm',
     keep_tokens=keep_tokens,  # 只保留keep_tokens中的字, 精简原字表
     layer_norm_cond=c,

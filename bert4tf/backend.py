@@ -37,6 +37,21 @@ def set_gelu(version):
         keras.utils.get_custom_objects()['gelu'] = gelu_tanh
 
 
+def batch_gather(params, indices):
+    """同tf旧版本的batch_gather
+    """
+    if K.dtype(indices)[:3] != 'int':
+        indices = K.cast(indices, 'int32')
+
+    try:
+        return tf.gather(params, indices, batch_dims=K.ndim(indices) - 1)
+    except Exception as e1:
+        try:
+            return tf.batch_gather(params, indices)
+        except Exception as e2:
+            raise ValueError('%s\n%s\n' % (e1.message, e2.message))
+
+
 def search_layer(inputs, name, exclude_from=None):
     """根据inputs和name来搜索层
     说明: inputs为某个层或某个层的输出; name为目标层的名字.
@@ -48,7 +63,6 @@ def search_layer(inputs, name, exclude_from=None):
     if isinstance(inputs, keras.layers.Layer):
         layer = inputs
     else:
-        print()
         layer = inputs._keras_history[0]
 
     if layer.name == name:

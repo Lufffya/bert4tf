@@ -6,10 +6,10 @@ from bert4tf.snippets import to_array
 
 
 # 建立分词器
-tokenizer = Tokenizer(dict_path, do_lower_case=True)
+tokenizer = Tokenizer(dict_path_zh, do_lower_case=True)
 
 # 建立模型, 加载权重
-model = build_bert_model(config_path=config_path, checkpoint_path=checkpoint_path, with_mlm=True)
+model = build_bert_model(config_path=config_path_zh, checkpoint_path=checkpoint_path_zh, with_mlm=True)
 
 token_ids, segment_ids = tokenizer.encode(u'科学技术是第一生产力')
 

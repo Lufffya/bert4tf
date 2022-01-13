@@ -12,14 +12,18 @@ from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator
 from bert4tf.layers import Lambda, Dense
+
+# gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
+# for gpu in gpus:
+#     tf.config.experimental.set_memory_growth(gpu, True)
 # tf.compat.v1.disable_eager_execution()
-tf.config.run_functions_eagerly(True)
-# tf.config.experimental_run_functions_eagerly(False)
+# tf.config.run_functions_eagerly(True)
+# tf.config.experimental_run_functions_eagerly(True)
 # tf.config.experimental_functions_run_eagerly()
 
 num_classes = 119
 maxlen = 128
-batch_size = 32
+batch_size = 16
 
 
 def load_data(filename):
@@ -40,7 +44,7 @@ train_data = load_data(r'CLUE/datasets/iflytek/train.json')
 valid_data = load_data(r'CLUE/datasets/iflytek/dev.json')
 
 # 建立分词器
-tokenizer = Tokenizer(dict_path, do_lower_case=True)
+tokenizer = Tokenizer(dict_path_zh, do_lower_case=True)
 
 
 class data_generator(DataGenerator):
@@ -67,8 +71,8 @@ valid_generator = data_generator(valid_data, batch_size)
 
 # 加载预训练模型
 bert = build_bert_model(
-    config_path=config_path,
-    checkpoint_path=checkpoint_path,
+    config_path=config_path_zh,
+    checkpoint_path=checkpoint_path_zh,
     return_keras_model=False
 )
 
@@ -87,12 +91,13 @@ def sparse_categorical_crossentropy(y_true, y_pred):
     y_true = K.one_hot(y_true, K.shape(y_pred)[-1])
     return K.categorical_crossentropy(y_true, y_pred)
 
-@tf.function
+
 def loss_with_gradient_penalty(y_true, y_pred, epsilon=1):
     """带梯度惩罚的loss
     """
     loss = K.mean(sparse_categorical_crossentropy(y_true, y_pred))
-    embeddings = search_layer(y_pred, 'Embedding-Token').embeddings
+    # embeddings = search_layer(y_pred, 'Embedding-Token').embeddings
+    embeddings = model.get_layer("Embedding-Token").embeddings
     gp = K.sum(K.gradients(loss, [embeddings])[0].values**2)
     return loss + 0.5 * epsilon * gp
 
@@ -100,7 +105,7 @@ def loss_with_gradient_penalty(y_true, y_pred, epsilon=1):
 model.compile(
     loss=loss_with_gradient_penalty,
     optimizer=Adam(2e-5),
-    metrics=['sparse_categorical_accuracy'],
+    metrics=['sparse_categorical_accuracy']
 )
 
 
