@@ -1,16 +1,14 @@
 #! -*- coding: utf-8 -*-
 # bert做conditional language model任务
-# 按类随机生成文本,这个demo的类别是情感极性（正／负）
+# 按类随机生成文本, 这个demo的类别是情感极性（正／负）
 # 请参考：https://kexue.fm/archives/7124
 
-import sys
 import numpy as np
 import pandas as pd
-sys.path.append('../bert4tf')
-from bert4tf.backend import keras, K
+from snippets import *
+from bert4tf.tokenizer import load_vocab
+from bert4tf.bert import Model
 from bert4tf.layers import Input, Embedding, Reshape, Loss
-from bert4tf.tokenizer import Tokenizer, load_vocab
-from bert4tf.bert import build_bert_model, Model
 from bert4tf.snippets import sequence_padding, text_segmentate
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
 from bert4tf.optimizers import Adam
@@ -22,17 +20,28 @@ batch_size = 32
 num_classes = 2
 epochs = 20
 
-# bert配置
-config_path = '/home/zxc/chinese_L-12_H-768_A-12/bert_config.json'
-checkpoint_path = '/home/zxc//chinese_L-12_H-768_A-12/bert_model.ckpt'
-dict_path = '/home/zxc/chinese_L-12_H-768_A-12/vocab.txt'
+
+def load_data(filenames):
+    """加载数据，并尽量划分为不超过maxlen的句子
+    """
+    D = []
+    seps, strips = u'\n。！？!?；;，, ', u'；;，, '
+    df = pd.read_csv(filenames)
+    for _, row in df.iterrows():
+        text = row['review']
+        label = row['label']
+        for t in text_segmentate(text, maxlen - 2, seps, strips):
+            D.append((t, int(label)))
+    return D
+
 
 # 加载并精简词表, 建立分词器
 token_dict, keep_tokens = load_vocab(
     dict_path=dict_path,
     simplified=True,
-    startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]'],
+    startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]']
 )
+
 tokenizer = Tokenizer(token_dict, do_lower_case=True)
 
 
@@ -88,12 +97,6 @@ class RandomSentiment(AutoRegressiveDecoder):
 
 random_sentiment = RandomSentiment(start_id=tokenizer._token_start_id, end_id=tokenizer._token_end_id, maxlen=maxlen)
 
-def just_show():
-    print(u'正面采样:')
-    print(random_sentiment.generate(1, 5, 5), '\n')
-    print(u'负面采样:')
-    print(random_sentiment.generate(0, 5, 5), '\n')
-
 
 class Evaluator(keras.callbacks.Callback):
     """评估与保存
@@ -107,7 +110,14 @@ class Evaluator(keras.callbacks.Callback):
             self.lowest = logs['loss']
             # model.save_weights('./best_model.weights')
         # 演示效果
-        just_show()
+        self.just_show()
+        
+    @staticmethod
+    def just_show():
+        print(u'正面采样:')
+        print(random_sentiment.generate(1, 5, 5), '\n')
+        print(u'负面采样:')
+        print(random_sentiment.generate(0, 5, 5), '\n')
 
 
 c_in = Input(shape=(1,))
@@ -121,31 +131,16 @@ model = build_bert_model(
     application='lm',
     keep_tokens=keep_tokens,  # 只保留keep_tokens中的字, 精简原字表
     layer_norm_cond=c,
-    additional_input_layers=c_in,
+    additional_input_layers=c_in
 )
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
-
 model = Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
 
 
 if __name__ == '__main__':
-
-    def load_data(filenames):
-        """加载数据，并尽量划分为不超过maxlen的句子
-        """
-        D = []
-        seps, strips = u'\n。！？!?；;，, ', u'；;，, '
-        df = pd.read_csv(filenames)
-        for _, row in df.iterrows():
-            text = row['review']
-            label = row['label']
-            for t in text_segmentate(text, maxlen - 2, seps, strips):
-                D.append((t, int(label)))
-        return D
-
     # 加载数据集
     data = load_data(r'data/waimai_comment.csv')
 

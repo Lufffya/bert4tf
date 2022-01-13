@@ -391,7 +391,7 @@ class LayerNormalization(Layer):
                 self.gamma_dense = keras.layers.Dense(units=shape[0], use_bias=False, kernel_initializer='zeros')
 
     def call(self, inputs):
-        """如果是条件Layer Norm，则默认以list为输入，第二个是condition
+        """如果是条件Layer Norm, 则默认以list为输入, 第二个是condition
         """
         if self.conditional:
             inputs, cond = inputs

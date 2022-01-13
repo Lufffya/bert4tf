@@ -2,20 +2,11 @@
 # bert 基础测试: 检查word embeddings
 # 如输入相同, 则表示bert权重加载正确
 
+from snippets import *
+from bert4tf.snippets import to_array
+
 
 def bert_tf_embedding():
-    import numpy as np
-    import sys
-    sys.path.append('../bert4tf')
-    from bert4tf.backend import keras
-    from bert4tf.bert import build_bert_model
-    from bert4tf.tokenizer import Tokenizer
-    from bert4tf.snippets import to_array
-
-    config_path = '/home/zxc/chinese_L-12_H-768_A-12/bert_config.json'
-    checkpoint_path = '/home/zxc//chinese_L-12_H-768_A-12/bert_model.ckpt'
-    dict_path = '/home/zxc/chinese_L-12_H-768_A-12/vocab.txt'
-
     tokenizer = Tokenizer(dict_path, do_lower_case=True)  # 建立分词器
     model = build_bert_model(config_path, checkpoint_path)  # 建立模型, 加载权重
 
@@ -49,7 +40,6 @@ def bert_tf_embedding():
 
 
 def tensorflow_hub_bert_embedding():
-    import tensorflow as tf
     import tensorflow_hub as hub
     import tensorflow_text as text  # Imports TF ops for preprocessing.
 

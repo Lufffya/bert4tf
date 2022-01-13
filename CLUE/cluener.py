@@ -1,5 +1,4 @@
 #! -*- coding: utf-8 -*-
-# CLUE 评测
 # cluener 命名实体识别(CLUE Fine-Grain NER)
 # 数据集: https://github.com/CLUEbenchmark/CLUENER2020
 # 思路: 用 GlobalPointer 做中文命名实体识别

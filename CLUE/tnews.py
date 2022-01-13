@@ -1,5 +1,4 @@
 #! -*- coding:utf-8 -*-
-# CLUE 评测
 # tnews 段文本分类 (Short Text Classification for News)
 # 思路: 取[CLS]然后接 Dense + Softmax 分类
 

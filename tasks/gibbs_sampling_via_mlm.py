@@ -1,21 +1,17 @@
 #! -*- coding: utf-8 -*-
 # bert 基础测试: 结合MLM的Gibbs采样
 
-import sys
 import numpy as np
 from tqdm import tqdm
-sys.path.append('../bert4tf')
-from bert4tf.bert import build_bert_model
-from bert4tf.tokenizer import Tokenizer
+from snippets import *
 from bert4tf.snippets import to_array
 
 
-config_path = '/home/zxc/chinese_L-12_H-768_A-12/bert_config.json'
-checkpoint_path = '/home/zxc//chinese_L-12_H-768_A-12/bert_model.ckpt'
-dict_path = '/home/zxc/chinese_L-12_H-768_A-12/vocab.txt'
+# 建立分词器
+tokenizer = Tokenizer(dict_path, do_lower_case=True)
 
-tokenizer = Tokenizer(dict_path, do_lower_case=True)  # 建立分词器
-model = build_bert_model(config_path=config_path, checkpoint_path=checkpoint_path, with_mlm=True)  # 建立模型, 加载权重
+# 建立模型, 加载权重
+model = build_bert_model(config_path=config_path, checkpoint_path=checkpoint_path, with_mlm=True)
 
 sentences = []
 # init_sent = u'科学技术是第一生产力。'  # 给定句子或者None

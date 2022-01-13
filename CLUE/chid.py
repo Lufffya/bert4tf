@@ -1,5 +1,4 @@
 #! -*- coding:utf-8 -*-
-# CLUE 评测
 # chid 成语阅读理解(多项选择)(Chinese IDiom Dataset for Cloze Test)
 # 思路: 每个选项分别与问题、篇章拼接后打分排序
 

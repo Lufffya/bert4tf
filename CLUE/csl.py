@@ -1,5 +1,4 @@
 #! -*- coding:utf-8 -*-
-# CLUE 评测
 # csl 关键词匹配(Keyword Recognition)
 # 思路: 将关键词拼接成句子后, 当成双文本分类
 
