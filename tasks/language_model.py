@@ -10,7 +10,6 @@ from bert4tf.optimizers import Adam
 from bert4tf.tokenizer import load_vocab
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from bert4tf.bert import Model
 
 
 maxlen = 256
@@ -105,7 +104,7 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
-model = Model(model.inputs, output)
+model = tf.keras.models.Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
 
@@ -159,12 +158,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=steps_per_epoch,
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=[evaluator])
 
 else:
     pass

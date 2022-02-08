@@ -12,7 +12,6 @@ from bert4tf.tokenizer import load_vocab
 from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding, DataGenerator
 from bert4tf.layers import Lambda
-from bert4tf.bert import Model
 
 
 max_p_len = 256
@@ -46,6 +45,7 @@ token_dict, keep_tokens = load_vocab(
     simplified=True,
     startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]', '[MASK]']
 )
+
 tokenizer = Tokenizer(token_dict, do_lower_case=True)
 
 
@@ -95,7 +95,7 @@ model = build_bert_model(
 )
 
 output = Lambda(lambda x: x[:, 1:max_a_len + 1])(model.output)
-model = Model(model.input, output)
+model = tf.keras.models.Model(model.input, output)
 model.summary()
 
 
@@ -202,12 +202,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
     pass

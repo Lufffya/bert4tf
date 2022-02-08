@@ -1,11 +1,9 @@
 #! -*- coding:utf-8 -*-
-# 三元组抽取任务，基于“半指针-半标注”结构
-# 文章介绍：https://kexue.fm/archives/7161
-# 数据集：http://ai.baidu.com/broad/download?dataset=sked
-# 最优f1=0.82198
-# 换用RoBERTa Large可以达到f1=0.829+
-# 说明：由于使用了EMA，需要跑足够多的步数(5000步以上）才生效，如果
-#      你的数据总量比较少，那么请务必跑足够多的epoch数，或者去掉EMA。
+# 三元组抽取任务, 基于“半指针-半标注”结构
+# 文章介绍: https://kexue.fm/archives/7161
+# 数据集: http://ai.baidu.com/broad/download?dataset=sked
+# 最优f1=0.82198 换用RoBERTa Large可以达到f1=0.829+
+# 说明: 由于使用了EMA, 需要跑足够多的步数(5000步以上）才生效, 如果你的数据总量比较少, 那么请务必跑足够多的epoch数, 或者去掉EMA.
 
 import json
 import numpy as np
@@ -15,7 +13,6 @@ from bert4tf.backend import batch_gather
 from bert4tf.optimizers import Adam, extend_with_exponential_moving_average
 from bert4tf.snippets import to_array, sequence_padding, DataGenerator
 from bert4tf.layers import Input, Dense, Lambda, Reshape, Loss, LayerNormalization
-from bert4tf.bert import Model
 
 
 maxlen = 128
@@ -148,7 +145,7 @@ bert = build_bert_model(
 # 预测subject
 output = Dense(units=2, activation='sigmoid', kernel_initializer=bert.initializer)(bert.model.output)
 subject_preds = Lambda(lambda x: x**2)(output)
-subject_model = Model(bert.model.inputs, subject_preds)
+subject_model = tf.keras.models.Model(bert.model.inputs, subject_preds)
 
 # 传入subject, 预测object
 # 通过Conditional Layer Normalization将subject融入到object的预测中
@@ -158,7 +155,7 @@ output = LayerNormalization(conditional=True)([output, subject])
 output = Dense(units=len(predicate2id) * 2, activation='sigmoid', kernel_initializer=bert.initializer)(output)
 output = Lambda(lambda x: x**4)(output)
 object_preds = Reshape((-1, len(predicate2id), 2))(output)
-object_model = Model(bert.model.inputs + [subject_ids], object_preds)
+object_model = tf.keras.models.Model(bert.model.inputs + [subject_ids], object_preds)
 
 
 class TotalLoss(Loss):
@@ -183,13 +180,10 @@ class TotalLoss(Loss):
         return subject_loss + object_loss
 
 
-subject_preds, object_preds = TotalLoss([2, 3])([
-    subject_labels, object_labels, subject_preds, object_preds,
-    bert.model.output
-])
+subject_preds, object_preds = TotalLoss([2, 3])([subject_labels, object_labels, subject_preds, object_preds,bert.model.output])
 
 # 训练模型
-train_model = Model(
+train_model = tf.keras.models.Model(
     bert.model.inputs + [subject_labels, subject_ids, object_labels],
     [subject_preds, object_preds]
 )
@@ -245,15 +239,10 @@ def extract_spoes(text):
 
 class SPO(tuple):
     """用来存三元组的类
-    表现跟tuple基本一致，只是重写了 __hash__ 和 __eq__ 方法，
-    使得在判断两个三元组是否等价时容错性更好。
+    表现跟tuple基本一致, 只是重写了 __hash__ 和 __eq__ 方法, 使得在判断两个三元组是否等价时容错性更好.
     """
     def __init__(self, spo):
-        self.spox = (
-            tuple(tokenizer.tokenize(spo[0])),
-            spo[1],
-            tuple(tokenizer.tokenize(spo[2])),
-        )
+        self.spox = (tuple(tokenizer.tokenize(spo[0])), spo[1], tuple(tokenizer.tokenize(spo[2])))
 
     def __hash__(self):
         return self.spox.__hash__()
@@ -310,12 +299,7 @@ if __name__ == '__main__':
     train_generator = data_generator(train_data, batch_size)
     evaluator = Evaluator()
 
-    train_model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=20,
-        callbacks=[evaluator]
-    )
+    train_model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=20, callbacks=[evaluator])
 
 else:
     pass

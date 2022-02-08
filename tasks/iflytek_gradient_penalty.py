@@ -7,7 +7,6 @@
 import json
 from tqdm import tqdm
 from snippets import *
-from bert4tf.backend import search_layer
 from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator
@@ -96,7 +95,6 @@ def loss_with_gradient_penalty(y_true, y_pred, epsilon=1):
     """带梯度惩罚的loss
     """
     loss = K.mean(sparse_categorical_crossentropy(y_true, y_pred))
-    # embeddings = search_layer(y_pred, 'Embedding-Token').embeddings
     embeddings = model.get_layer("Embedding-Token").embeddings
     gp = K.sum(K.gradients(loss, [embeddings])[0].values**2)
     return loss + 0.5 * epsilon * gp
@@ -152,12 +150,7 @@ def predict_to_file(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=50,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=50, callbacks=[evaluator])
 
 else:
     pass

@@ -103,12 +103,7 @@ class Evaluator(keras.callbacks.Callback):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=20,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=20, callbacks=[evaluator])
 
     # model.load_weights('best_model.weights')
     print(u'final test acc: %05f\n' % (Evaluator.evaluate(test_generator)))

@@ -13,7 +13,6 @@ from bert4tf.tokenizer import load_vocab
 from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from bert4tf.bert import Model
 
 
 max_p_len = 256
@@ -45,7 +44,7 @@ train_data.extend(webqa_data)  # 将SogouQA和WebQA按2:1的比例混合
 token_dict, keep_tokens = load_vocab(
     dict_path=dict_path_zh,
     simplified=True,
-    startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]'],
+    startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]']
 )
 
 tokenizer = Tokenizer(token_dict, do_lower_case=True)
@@ -82,7 +81,7 @@ class data_generator(DataGenerator):
 
 
 class CrossEntropy(Loss):
-    """交叉熵作为loss，并mask掉输入部分
+    """交叉熵作为loss, 并mask掉输入部分
     """
     def compute_loss(self, inputs, mask=None):
         y_true, y_mask, y_pred = inputs
@@ -102,7 +101,7 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=2)(model.inputs + model.outputs)
-model = Model(model.inputs, output)
+model = tf.keras.models.Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
 
@@ -146,7 +145,7 @@ class ReadingComprehension(AutoRegressiveDecoder):
         probas = np.array(probas).reshape((len(inputs), topk, -1))
         if states == 0:
             # 这一步主要是排除没有答案的篇章
-            # 如果一开始最大值就为end_id，那说明该篇章没有答案
+            # 如果一开始最大值就为end_id, 那说明该篇章没有答案
             argmax = probas[:, 0].argmax(axis=1)
             available_idxs = np.where(argmax != self.end_id)[0]
             if len(available_idxs) == 0:
@@ -159,7 +158,7 @@ class ReadingComprehension(AutoRegressiveDecoder):
                 probas = probas[available_idxs]
                 inputs = [i for i in inputs if i[0, 0] > -1]  # 过滤掉无答案篇章
         if self.mode == 'extractive':
-            # 如果是抽取式，那么答案必须是篇章的一个片段
+            # 如果是抽取式, 那么答案必须是篇章的一个片段
             # 那么将非篇章片段的概率值全部置0
             new_probas = np.zeros_like(probas)
             ngrams = {}
@@ -184,9 +183,7 @@ class ReadingComprehension(AutoRegressiveDecoder):
             p_token_ids = tokenizer.encode(passage, maxlen=max_p_len)[0]
             q_token_ids = tokenizer.encode(question, maxlen=max_q_len + 1)[0]
             token_ids.append(p_token_ids + q_token_ids[1:])
-        output_ids = self.beam_search(
-            token_ids, topk=topk, states=0
-        )  # 基于beam search
+        output_ids = self.beam_search(token_ids, topk=topk, states=0)  # 基于beam search
         return tokenizer.decode(output_ids)
 
 
@@ -231,12 +228,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
     pass

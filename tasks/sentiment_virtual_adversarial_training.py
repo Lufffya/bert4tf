@@ -1,12 +1,11 @@
 #! -*- coding:utf-8 -*-
 # 通过虚拟对抗训练进行半监督学习
 # use_vat=True比use_vat=False约有1%的提升
-# 数据集：情感分析数据集
-# 博客：https://kexue.fm/archives/7466
+# 数据集: 情感分析数据集
+# 博客: https://kexue.fm/archives/7466
 
 import numpy as np
 from snippets import *
-from bert4tf.backend import search_layer
 from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator
@@ -101,7 +100,7 @@ def virtual_adversarial_training(model, embedding_name, epsilon=1, xi=10, iters=
 
     # 查找Embedding层
     for output in model.outputs:
-        embedding_layer = search_layer(output, embedding_name)
+        embedding_layer = model.get_layer(embedding_name)
         if embedding_layer is not None:
             break
     if embedding_layer is None:
@@ -176,12 +175,7 @@ class Evaluator(keras.callbacks.Callback):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=30,
-        epochs=100,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=30, epochs=100, callbacks=[evaluator])
 
 else:
     pass

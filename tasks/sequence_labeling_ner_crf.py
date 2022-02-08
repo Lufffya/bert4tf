@@ -8,16 +8,15 @@ from tqdm import tqdm
 from snippets import *
 from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding, DataGenerator
-from bert4tf.snippets import ViterbiDecoder, to_array
+from bert4tf.snippets import to_array, ViterbiDecoder
 from bert4tf.layers import Dense, ConditionalRandomField
-from bert4tf.bert import Model
 
 
 maxlen = 256
 epochs = 10
 batch_size = 32
 bert_layers = 12
-learning_rate = 2e-5  # bert_layers越小，学习率应该要越大
+learning_rate = 2e-5  # bert_layers越小, 学习率应该要越大
 crf_lr_multiplier = 1000  # 必要时扩大CRF层的学习率
 categories = set()
 
@@ -86,21 +85,12 @@ class data_generator(DataGenerator):
                 batch_token_ids, batch_segment_ids, batch_labels = [], [], []
 
 
-"""
-后面的代码使用的是bert类型的模型，如果你用的是albert，那么前几行请改为：
-model = build_transformer_model(
-    config_path,
-    checkpoint_path,
-    model='albert',
-)
-output_layer = 'Transformer-FeedForward-Norm'
-output = model.get_layer(output_layer).get_output_at(bert_layers - 1)
-"""
+# 后面的代码使用的是bert类型的模型，如果你用的是albert，那么前几行请改为：
+# model = build_transformer_model(config_path, checkpoint_path, model='albert')
+# output_layer = 'Transformer-FeedForward-Norm'
+# output = model.get_layer(output_layer).get_output_at(bert_layers - 1)
 
-model = build_transformer_model(
-    config_path_zh,
-    checkpoint_path_zh
-)
+model = build_transformer_model(config_path_zh, checkpoint_path_zh)
 
 output_layer = 'Transformer-%s-FeedForward-Norm' % (bert_layers - 1)
 output = model.get_layer(output_layer).output
@@ -178,12 +168,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs,callbacks=[evaluator])
 
 else:
     pass

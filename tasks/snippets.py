@@ -1,5 +1,4 @@
 import os, sys
-from this import d
 sys.path.append('../bert4tf')
 from bert4tf.backend import tf, keras, K
 from bert4tf.tokenizer import Tokenizer

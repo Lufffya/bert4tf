@@ -3,15 +3,17 @@
 # 数据集 http://sighan.cs.uchicago.edu/bakeoff2005/
 # 最后测试集的F1约为96.1%
 
+import os
+import re
+import json
+from this import d
 import numpy as np
-import re, os, json
 from tqdm import tqdm
 from snippets import *
 from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding, DataGenerator
-from bert4tf.snippets import to_array ViterbiDecoder
+from bert4tf.snippets import to_array, ViterbiDecoder
 from bert4tf.layers import Dense, ConditionalRandomField
-from bert4tf.bert import Model
 
 
 maxlen = 256
@@ -19,7 +21,7 @@ epochs = 10
 num_labels = 4
 batch_size = 32
 bert_layers = 12
-learning_rate = 1e-5  # bert_layers越小，学习率应该要越大
+learning_rate = 1e-5  # bert_layers越小, 学习率应该要越大
 crf_lr_multiplier = 1  # 必要时扩大CRF层的学习率
 
 
@@ -56,6 +58,7 @@ tokenizer = Tokenizer(dict_path_zh, do_lower_case=True)
 class data_generator(DataGenerator):
     """数据生成器
     """
+
     def __iter__(self, random=False):
         """标签含义
         0: 单字词; 1: 多字词首字; 2: 多字词中间; 3: 多字词末字
@@ -87,28 +90,20 @@ class data_generator(DataGenerator):
                 batch_token_ids, batch_segment_ids, batch_labels = [], [], []
 
 
-"""
-后面的代码使用的是bert类型的模型，如果你用的是albert，那么前几行请改为:
-model = build_transformer_model(
-    config_path,
-    checkpoint_path,
-    model='albert',
-)
-output_layer = 'Transformer-FeedForward-Norm'
-output = model.get_layer(output_layer).get_output_at(bert_layers - 1)
-"""
+# 后面的代码使用的是bert类型的模型, 如果你用的是albert, 那么前几行请改为:
+# model = build_bert_model(config_path, checkpoint_path, model='albert')
+# output_layer = 'Transformer-FeedForward-Norm'
+# output = model.get_layer(output_layer).get_output_at(bert_layers - 1)
 
-model = build_transformer_model(
-    config_path_zh,
-    checkpoint_path_zh
-)
+
+model = build_bert_model(config_path_zh, checkpoint_path_zh)
 
 output_layer = 'Transformer-%s-FeedForward-Norm' % (bert_layers - 1)
 output = model.get_layer(output_layer).output
 output = Dense(num_labels)(output)
 CRF = ConditionalRandomField(lr_multiplier=crf_lr_multiplier)
 output = CRF(output)
-model = Model(model.input, output)
+model = tf.keras.models.Model(model.input, output)
 model.compile(loss=CRF.sparse_loss, optimizer=Adam(learning_rate), metrics=[CRF.sparse_accuracy])
 model.summary()
 
@@ -145,7 +140,7 @@ def predict_to_file(in_file, out_file):
     官方评测代码示例:
     data_dir="/root/icwb2-data"
     $data_dir/scripts/score $data_dir/gold/pku_training_words.utf8 $data_dir/gold/pku_test_gold.utf8 myresult.txt > myscore.txt
-    （执行完毕后查看myscore.txt的内容末尾）
+    (执行完毕后查看myscore.txt的内容末尾)
     """
     fw = open(out_file, 'w', encoding='utf-8')
     with open(in_file, encoding='utf-8') as fr:
@@ -177,8 +172,7 @@ class Evaluator(keras.callbacks.Callback):
     @staticmethod
     def simple_evaluate(data):
         """简单的评测
-        该评测指标不等价于官方的评测指标，但基本呈正相关关系，
-        可以用来快速筛选模型。
+        该评测指标不等价于官方的评测指标, 但基本呈正相关关系,可以用来快速筛选模型.
         """
         total, right = 0., 0.
         for w_true in tqdm(data):
@@ -194,12 +188,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
     pass

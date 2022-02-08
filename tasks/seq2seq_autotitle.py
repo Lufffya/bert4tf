@@ -10,7 +10,6 @@ from bert4tf.tokenizer import load_vocab
 from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from bert4tf.bert import Model
 
 
 # 基本参数
@@ -74,7 +73,7 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=2)(model.inputs + model.outputs)
-model = Model(model.inputs, output)
+model = tf.keras.models.Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
 

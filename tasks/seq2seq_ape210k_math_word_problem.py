@@ -1,9 +1,9 @@
 #! -*- coding: utf-8 -*-
 # 用Seq2Seq做小学数学应用题
-# 数据集为ape210k：https://github.com/Chenny0808/ape210k
-# Base版准确率为70%+，Large版准确率为73%+
-# 实测环境：tensorflow 1.14 + keras 2.3.1 + bert4keras 0.8.8
-# 介绍链接：https://kexue.fm/archives/7809
+# 数据集为ape210k: https://github.com/Chenny0808/ape210k
+# Base版准确率为70%+, Large版准确率为73%+
+# 实测环境: tensorflow 1.14 + keras 2.3.1 + bert4keras 0.8.8
+# 介绍链接: https://kexue.fm/archives/7809
 
 import json, re
 import numpy as np
@@ -112,9 +112,7 @@ class data_generator(DataGenerator):
     def __iter__(self, random=False):
         batch_token_ids, batch_segment_ids = [], []
         for is_end, (question, equation, answer) in self.sample(random):
-            token_ids, segment_ids = tokenizer.encode(
-                question, equation, maxlen=maxlen
-            )
+            token_ids, segment_ids = tokenizer.encode(question, equation, maxlen=maxlen)
             batch_token_ids.append(token_ids)
             batch_segment_ids.append(segment_ids)
             if len(batch_token_ids) == self.batch_size or is_end:
@@ -258,12 +256,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
     pass

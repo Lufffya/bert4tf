@@ -1,7 +1,7 @@
 #! -*- coding: utf-8 -*-
 # bert做image caption任务, coco数据集
 # 通过Conditional Layer Normalization融入条件信息
-# 请参考：https://kexue.fm/archives/7124
+# 请参考: https://kexue.fm/archives/7124
 
 import cv2
 import json
@@ -10,7 +10,6 @@ from snippets import *
 from bert4tf.tokenizer import  load_vocab
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from bert4tf.bert import Model
 from bert4tf.layers import Loss
 from bert4tf.optimizers import Adam
 
@@ -143,7 +142,7 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
-model = Model(model.inputs, output)
+model = tf.keras.models.Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
 
@@ -166,11 +165,7 @@ class AutoCaption(AutoRegressiveDecoder):
         return tokenizer.decode(output_ids)
 
 
-autocaption = AutoCaption(
-    start_id=tokenizer._token_start_id,
-    end_id=tokenizer._token_end_id,
-    maxlen=maxlen
-)
+autocaption = AutoCaption(start_id=tokenizer._token_start_id, end_id=tokenizer._token_end_id, maxlen=maxlen)
 
 
 class Evaluator(keras.callbacks.Callback):
@@ -203,12 +198,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=steps_per_epoch,
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=[evaluator])
 
 else:
     pass

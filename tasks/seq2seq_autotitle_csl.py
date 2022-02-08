@@ -1,5 +1,5 @@
 #! -*- coding: utf-8 -*-
-# bert做Seq2Seq任务，采用UNILM方案
+# bert做Seq2Seq任务, 采用UNILM方案
 # 介绍链接: https://kexue.fm/archives/6933
 # 数据集: https://github.com/CLUEbenchmark/CLGE 中的CSL数据集
 # 补充了评测指标bleu、rouge-1、rouge-2、rouge-l
@@ -12,7 +12,6 @@ from bert4tf.tokenizer import load_vocab
 from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from bert4tf.bert import Model
 from rouge import Rouge  # pip install rouge
 from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
@@ -87,7 +86,7 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=2)(model.inputs + model.outputs)
-model = Model(model.inputs, output)
+model = tf.keras.models.Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
 
@@ -161,12 +160,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
     pass

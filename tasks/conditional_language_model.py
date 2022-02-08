@@ -1,13 +1,12 @@
 #! -*- coding: utf-8 -*-
 # bert做conditional language model任务
-# 按类随机生成文本, 这个demo的类别是情感极性（正／负）
-# 请参考：https://kexue.fm/archives/7124
+# 按类随机生成文本, 这个demo的类别是情感极性(正/负)
+# 请参考: https://kexue.fm/archives/7124
 
 import numpy as np
 import pandas as pd
 from snippets import *
 from bert4tf.tokenizer import load_vocab
-from bert4tf.bert import Model
 from bert4tf.layers import Input, Embedding, Reshape, Loss
 from bert4tf.snippets import sequence_padding, text_segmentate
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
@@ -15,14 +14,14 @@ from bert4tf.optimizers import Adam
 
 
 # 模型配置
-maxlen = 128
+maxlen = 64
 batch_size = 32
 num_classes = 2
 epochs = 20
 
 
 def load_data(filenames):
-    """加载数据，并尽量划分为不超过maxlen的句子
+    """加载数据, 并尽量划分为不超过maxlen的句子
     """
     D = []
     seps, strips = u'\n。！？!?；;，, ', u'；;，, '
@@ -86,9 +85,7 @@ class RandomSentiment(AutoRegressiveDecoder):
     def predict(self, inputs, output_ids, states):
         token_ids = output_ids
         segment_ids = np.zeros_like(token_ids)
-        return self.last_token(model).predict([
-            token_ids, segment_ids, inputs[0]
-        ])
+        return self.last_token(model).predict([token_ids, segment_ids, inputs[0]])
 
     def generate(self, label, n=1, topp=0.95):
         results = self.random_sample([[label]], n, topp=topp)  # 基于随机采样
@@ -135,7 +132,7 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
-model = Model(model.inputs, output)
+model = tf.keras.models.Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
 
@@ -147,12 +144,7 @@ if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=len(train_generator),
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
     pass

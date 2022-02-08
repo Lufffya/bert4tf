@@ -10,10 +10,8 @@ from snippets import *
 from bert4tf.layers import Loss
 from bert4tf.tokenizer import load_vocab
 from bert4tf.optimizers import Adam
-from bert4tf.snippets import sequence_padding
+from bert4tf.snippets import sequence_padding, text_segmentate
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from bert4tf.snippets import text_segmentate
-from keras.models import Model
 
 
 # 基本参数
@@ -56,7 +54,7 @@ valid_data = [data[j] for i, j in enumerate(random_order) if i % 10 == 0]
 token_dict, keep_tokens = load_vocab(
     dict_path=dict_path_zh,
     simplified=True,
-    startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]'],
+    startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]']
 )
 
 tokenizer = Tokenizer(token_dict, do_lower_case=True)
@@ -107,13 +105,13 @@ model = build_bert_model(
 
 output = CrossEntropy(2)(model.inputs + model.outputs)
 
-model = Model(model.inputs, output)
+model = tf.keras.models.Model(model.inputs, output)
 model.compile(optimizer=Adam(1e-5))
 model.summary()
 
 
 class QuestionAnswerGeneration(AutoRegressiveDecoder):
-    """随机生成答案，并且通过beam search来生成问题
+    """随机生成答案, 并且通过beam search来生成问题
     """
     @AutoRegressiveDecoder.wraps(default_rtype='probas')
     def predict(self, inputs, output_ids, states):
@@ -124,22 +122,18 @@ class QuestionAnswerGeneration(AutoRegressiveDecoder):
 
     def generate(self, passage, topk=1, topp=0.95):
         token_ids, segment_ids = tokenizer.encode(passage, maxlen=max_p_len)
-        a_ids = self.random_sample([token_ids, segment_ids], 1,
-                                   topp=topp)[0]  # 基于随机采样
+        a_ids = self.random_sample([token_ids, segment_ids], 1, topp=topp)[0]  # 基于随机采样
         token_ids += list(a_ids)
         segment_ids += [1] * len(a_ids)
-        q_ids = self.beam_search([token_ids, segment_ids],
-                                 topk=topk)  # 基于beam search
+        q_ids = self.beam_search([token_ids, segment_ids], topk=topk)  # 基于beam search
         return (tokenizer.decode(q_ids), tokenizer.decode(a_ids))
 
 
-qag = QuestionAnswerGeneration(
-    start_id=None, end_id=tokenizer._token_end_id, maxlen=max_q_len
-)
+qag = QuestionAnswerGeneration(start_id=None, end_id=tokenizer._token_end_id, maxlen=max_q_len)
 
 
 def predict_to_file(data, filename, topk=1):
-    """将预测结果输出到文件，方便评估
+    """将预测结果输出到文件, 方便评估
     """
     with open(filename, 'w', encoding='utf-8') as f:
         for d in tqdm(iter(data), desc=u'正在预测(共%s条样本)' % len(data)):
@@ -159,22 +153,16 @@ class Evaluator(keras.callbacks.Callback):
         # 保存最优
         if logs['loss'] <= self.lowest:
             self.lowest = logs['loss']
-            model.save_weights('./best_model.weights')
+            # model.save_weights('./best_model.weights')
 
 
 if __name__ == '__main__':
-
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=1000,
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=1000, epochs=epochs, callbacks=[evaluator])
 
 else:
-
-    model.load_weights('./best_model.weights')
+    pass
+    # model.load_weights('./best_model.weights')
     # predict_to_file(valid_data, 'qa.csv')
