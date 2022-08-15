@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # iflytek 长文本分类(Long Text classification)
 # 思路: 取[CLS]然后接 Dense + Softmax 分类
 

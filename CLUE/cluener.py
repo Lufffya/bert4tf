@@ -1,4 +1,3 @@
-#! -*- coding: utf-8 -*-
 # cluener 命名实体识别(CLUE Fine-Grain NER)
 # 数据集: https://github.com/CLUEbenchmark/CLUENER2020
 # 思路: 用 GlobalPointer 做中文命名实体识别
@@ -169,7 +168,7 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('weights/cluener.weights')
-    # test_predict(in_file=data_path + 'cluener/test.json', out_file='results/cluener_predict.json')
+    test_predict(in_file=data_path + 'cluener/test.json', out_file='cluener/cluener_predict.json')
 
 else:
     pass

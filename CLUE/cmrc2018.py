@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # cmrc2018 阅读理解(Reading Comprehension for Simplified Chinese)
 # 思路: 基于滑动窗口和 GlobalPointer
 

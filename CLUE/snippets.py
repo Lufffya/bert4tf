@@ -1,6 +1,4 @@
-#! -*- coding: utf-8 -*-
-# CLUE 评测
-# 模型配置文件
+# CLUE 评测 - 模型配置文件
 
 import os, sys
 sys.path.append('../bert4tf')
@@ -12,7 +10,7 @@ from bert4tf.optimizers import extend_with_gradient_accumulation
 
 
 # 通用参数
-data_path = r'CLUE/datasets/'
+data_path = r'E:/zhaoxinchen/datasets/CLUE/'
 learning_rate = 5e-4
 pooling = 'first'
 
@@ -25,9 +23,13 @@ pooling = 'first'
 #     os.mkdir(r'CLUE/results')
 
 # 模型路径
-config_path = r'/home/zxc/chinese_L-12_H-768_A-12/bert_config.json'
-checkpoint_path = r'/home/zxc//chinese_L-12_H-768_A-12/bert_model.ckpt'
-dict_path = r'/home/zxc/chinese_L-12_H-768_A-12/vocab.txt'
+# config_path = r'/home/zxc/chinese_L-12_H-768_A-12/bert_config.json'
+# checkpoint_path = r'/home/zxc//chinese_L-12_H-768_A-12/bert_model.ckpt'
+# dict_path = r'/home/zxc/chinese_L-12_H-768_A-12/vocab.txt'
+
+config_path = r'E:/zhaoxinchen/models/chinese_L-12_H-768_A-12/bert_config.json'
+checkpoint_path = r'E:/zhaoxinchen/models/chinese_L-12_H-768_A-12/bert_model.ckpt'
+dict_path = r'E:/zhaoxinchen/models/chinese_L-12_H-768_A-12/vocab.txt'
 
 # 建立分词器
 tokenizer = Tokenizer(dict_path, do_lower_case=True)

@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # afqmc 语义相似度(Ant Financial Question Matching Corpus)
 # 思路: 文本拼接后取[CLS]然后接 Dense + Softmax 分类
 

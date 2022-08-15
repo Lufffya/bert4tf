@@ -1,4 +1,4 @@
-# 通用语言理解测评基准(CLUE) General Language Understanding Evaluation
+# 通用语言理解测评基准(GLUE) General Language Understanding Evaluation
 
 ## 1, CoLA(The Corpus of Linguistic Acceptability, 语言可接受性语料库)
 

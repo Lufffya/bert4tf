@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # c3 多项选择阅读理解(Multiple-Choice Chinese Machine Reading Comprehension)
 # 思路: 每个选项分别与问题、篇章拼接后打分排序
 

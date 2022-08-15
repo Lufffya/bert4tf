@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # ocnli 自然语言推理(Original Chinese Natural Language Inference)
 # 思路: 文本拼接后取[CLS]然后接 Dense + Softmax 分类
 
