@@ -1,4 +1,3 @@
-#! -*- coding: utf-8 -*-
 # SuperGLUE评测
 # 模型配置文件
 

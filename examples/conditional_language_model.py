@@ -1,16 +1,12 @@
-#! -*- coding: utf-8 -*-
 # bert做conditional language model任务
 # 按类随机生成文本, 这个demo的类别是情感极性(正/负)
 # 请参考: https://kexue.fm/archives/7124
 
-import numpy as np
-import pandas as pd
 from snippets import *
 from bert4tf.tokenizer import load_vocab
-from bert4tf.layers import Input, Embedding, Reshape, Loss
+from bert4tf.layers import Loss, Embedding
 from bert4tf.snippets import sequence_padding, text_segmentate
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from bert4tf.optimizers import Adam
 
 
 # 模型配置
@@ -35,11 +31,7 @@ def load_data(filenames):
 
 
 # 加载并精简词表, 建立分词器
-token_dict, keep_tokens = load_vocab(
-    dict_path=dict_path_zh,
-    simplified=True,
-    startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]']
-)
+token_dict, keep_tokens = load_vocab(dict_path=dict_path_zh, simplified=True, startswith=['[PAD]', '[UNK]', '[CLS]', '[SEP]'])
 
 tokenizer = Tokenizer(token_dict, do_lower_case=True)
 
@@ -117,9 +109,9 @@ class Evaluator(keras.callbacks.Callback):
         print(random_sentiment.generate(0, 5, 5), '\n')
 
 
-c_in = Input(shape=(1,))
+c_in = keras.layers.Input(shape=(1,))
 c = Embedding(num_classes, 128)(c_in)
-c = Reshape((128,))(c)
+c = keras.layers.Reshape((128,))(c)
 
 # Bert模型
 model = build_bert_model(
@@ -133,12 +125,11 @@ model = build_bert_model(
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
 model = tf.keras.models.Model(model.inputs, output)
-model.compile(optimizer=Adam(1e-5))
+model.compile(optimizer=keras.optimizers.Adam(1e-5))
 model.summary()
 
 
 if __name__ == '__main__':
-    # 加载数据集
     data = load_data(r'data/waimai_comment.csv')
 
     evaluator = Evaluator()
@@ -147,8 +138,9 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
+    pass
+
 """
 正面采样:
 [

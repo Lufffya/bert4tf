@@ -4,7 +4,7 @@
 # 数据集: IFLYTEK' 长文本分类 (https://github.com/CLUEbenchmark/CLUE)
 # 博客: https://kexue.fm/archives/7234
 
-import json
+
 from tqdm import tqdm
 from snippets import *
 from bert4tf.optimizers import Adam

@@ -1,8 +1,5 @@
-#! -*- coding: utf-8 -*-
 # bert 基础测试: 结合MLM的Gibbs采样
 
-import numpy as np
-from tqdm import tqdm
 from snippets import *
 from bert4tf.snippets import to_array
 

@@ -1,4 +1,3 @@
-#! -*- coding: utf-8 -*-
 # bert 基础测试: 检查word embeddings
 # 如输入相同, 则表示bert权重加载正确
 
@@ -64,7 +63,6 @@ def tensorflow_hub_bert_embedding():
 
     print("\nPer token embeddings:")
     print(outputs["sequence_output"])
-
 
 
 if __name__ == '__main__':
