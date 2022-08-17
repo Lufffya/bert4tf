@@ -1,25 +1,39 @@
-#! -*- coding: utf-8 -*-
 # bert做Seq2Seq任务, 采用UNILM方案
-# 介绍链接：https://kexue.fm/archives/6933
+# 介绍链接: https://kexue.fm/archives/6933
+# 数据集: https://github.com/CLUEbenchmark/CLGE 中的CSL数据集
+# 补充了评测指标bleu、rouge-1、rouge-2、rouge-l
 
-import glob
-import numpy as np
 from snippets import *
 from bert4tf.layers import Loss
 from bert4tf.tokenizer import load_vocab
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
+from rouge import Rouge  # pip install rouge
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 
 
 # 基本参数
 maxlen = 256
 batch_size = 16
-steps_per_epoch = 1000
-epochs = 10000
+epochs = 20
 
-# 训练样本. THUCNews数据集, 每个样本保存为一个txt.
-txts = glob.glob('/root/thuctc/THUCNews/*/*.txt')
+
+def load_data(filename):
+    """加载数据
+    单条格式: (标题, 正文)
+    """
+    D = []
+    with open(filename, encoding='utf-8') as f:
+        for l in f:
+            title, content = l.strip().split('\t')
+            D.append((title, content))
+    return D
+
+
+# 加载数据集
+train_data = load_data('/root/csl/train.tsv')
+valid_data = load_data('/root/csl/val.tsv')
+test_data = load_data('/root/csl/test.tsv')
 
 # 加载并精简词表, 建立分词器
 token_dict, keep_tokens = load_vocab(
@@ -36,15 +50,10 @@ class data_generator(DataGenerator):
     """
     def __iter__(self, random=False):
         batch_token_ids, batch_segment_ids = [], []
-        for is_end, txt in self.sample(random):
-            text = open(txt, encoding='utf-8').read()
-            text = text.split('\n')
-            if len(text) > 1:
-                title = text[0]
-                content = '\n'.join(text[1:])
-                token_ids, segment_ids = tokenizer.encode(content, title, maxlen=maxlen)
-                batch_token_ids.append(token_ids)
-                batch_segment_ids.append(segment_ids)
+        for is_end, (title, content) in self.sample(random):
+            token_ids, segment_ids = tokenizer.encode(content, title, maxlen=maxlen)
+            batch_token_ids.append(token_ids)
+            batch_segment_ids.append(segment_ids)
             if len(batch_token_ids) == self.batch_size or is_end:
                 batch_token_ids = sequence_padding(batch_token_ids)
                 batch_segment_ids = sequence_padding(batch_segment_ids)
@@ -73,8 +82,8 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=2)(model.inputs + model.outputs)
-model = tf.keras.models.Model(model.inputs, output)
-model.compile(optimizer=Adam(1e-5))
+model = keras.models.Model(model.inputs, output)
+model.compile(optimizer=keras.optimizers.Adam(1e-5))
 model.summary()
 
 
@@ -102,36 +111,53 @@ class Evaluator(keras.callbacks.Callback):
     """评估与保存
     """
     def __init__(self):
-        self.lowest = 1e10
+        self.rouge = Rouge()
+        self.smooth = SmoothingFunction().method1
+        self.best_bleu = 0.
 
     def on_epoch_end(self, epoch, logs=None):
-        # 保存最优
-        if logs['loss'] <= self.lowest:
-            self.lowest = logs['loss']
-            # model.save_weights('./best_model.weights')
-        # 演示效果
-        self.just_show()
+        metrics = self.evaluate(valid_data)  # 评测模型
+        if metrics['bleu'] > self.best_bleu:
+            self.best_bleu = metrics['bleu']
+            # model.save_weights('./best_model.weights')  # 保存模型
+        metrics['best_bleu'] = self.best_bleu
+        print('valid_data:', metrics)
 
-    @staticmethod
-    def just_show():
-        s1 = u'夏天来临，皮肤在强烈紫外线的照射下，晒伤不可避免，因此，晒后及时修复显得尤为重要，否则可能会造成长期伤害。专家表示，选择晒后护肤品要慎重，芦荟凝胶是最安全，有效的一种选择，晒伤严重者，还请及 时 就医 。'
-        s2 = u'8月28日，网络爆料称，华住集团旗下连锁酒店用户数据疑似发生泄露。从卖家发布的内容看，数据包含华住旗下汉庭、禧玥、桔子、宜必思等10余个品牌酒店的住客信息。泄露的信息包括华住官网注册资料、酒店入住登记的身份信息及酒店开房记录，住客姓名、手机号、邮箱、身份证号、登录账号密码等。卖家对这个约5亿条数据打包出售。第三方安全平台威胁猎人对信息出售者提供的三万条数据进行验证，认为数据真实性非常高。当天下午 ，华 住集 团发声明称，已在内部迅速开展核查，并第一时间报警。当晚，上海警方消息称，接到华住集团报案，警方已经介入调查。'
-        for s in [s1, s2]:
-            print(u'生成标题:', autotitle.generate(s))
-        print()
+    def evaluate(self, data, topk=1):
+        total = 0
+        rouge_1, rouge_2, rouge_l, bleu = 0, 0, 0, 0
+        for title, content in tqdm(data):
+            total += 1
+            title = ' '.join(title).lower()
+            pred_title = ' '.join(autotitle.generate(content, topk)).lower()
+            if pred_title.strip():
+                scores = self.rouge.get_scores(hyps=pred_title, refs=title)
+                rouge_1 += scores[0]['rouge-1']['f']
+                rouge_2 += scores[0]['rouge-2']['f']
+                rouge_l += scores[0]['rouge-l']['f']
+                bleu += sentence_bleu(
+                    references=[title.split(' ')],
+                    hypothesis=pred_title.split(' '),
+                    smoothing_function=self.smooth
+                )
+        rouge_1 /= total
+        rouge_2 /= total
+        rouge_l /= total
+        bleu /= total
+        return {
+            'rouge-1': rouge_1,
+            'rouge-2': rouge_2,
+            'rouge-l': rouge_l,
+            'bleu': bleu,
+        }
 
 
 if __name__ == '__main__':
     evaluator = Evaluator()
-    train_generator = data_generator(txts, batch_size)
+    train_generator = data_generator(train_data, batch_size)
 
-    model.fit(
-        train_generator.forfit(),
-        steps_per_epoch=steps_per_epoch,
-        epochs=epochs,
-        callbacks=[evaluator]
-    )
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
+    pass

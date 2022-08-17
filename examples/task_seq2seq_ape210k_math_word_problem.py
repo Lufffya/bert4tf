@@ -1,21 +1,15 @@
-#! -*- coding: utf-8 -*-
 # 用Seq2Seq做小学数学应用题
 # 数据集为ape210k: https://github.com/Chenny0808/ape210k
 # Base版准确率为70%+, Large版准确率为73%+
 # 实测环境: tensorflow 1.14 + keras 2.3.1 + bert4keras 0.8.8
 # 介绍链接: https://kexue.fm/archives/7809
 
-import json, re
-import numpy as np
-import pandas as pd
-from tqdm import tqdm
 from snippets import *
+from sympy import Integer
 from bert4tf.layers import Loss
 from bert4tf.tokenizer import load_vocab
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from sympy import Integer
 
 
 # 基本参数
@@ -143,8 +137,8 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=2)(model.inputs + model.outputs)
-model = tf.keras.models.Model(model.inputs, output)
-model.compile(optimizer=Adam(2e-5))
+model = keras.models.Model(model.inputs, output)
+model.compile(optimizer=keras.optimizers.Adam(2e-5))
 model.summary()
 
 
@@ -259,5 +253,5 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
+    pass

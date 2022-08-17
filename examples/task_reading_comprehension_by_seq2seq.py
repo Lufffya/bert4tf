@@ -1,16 +1,11 @@
-#! -*- coding: utf-8 -*-
 # 用seq2seq的方式做阅读理解任务
 # 数据集和评测同 https://github.com/bojone/dgcnn_for_reading_comprehension
 # 8个epoch后在valid上能达到约0.77的分数
 # (Accuracy=0.7259005836184343  F1=0.813860036706151  Final=0.7698803101622926)
 
-import numpy as np
-import json, os, re
-from tqdm import tqdm
 from snippets import *
 from bert4tf.layers import Loss
 from bert4tf.tokenizer import load_vocab
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
 
@@ -101,8 +96,8 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=2)(model.inputs + model.outputs)
-model = tf.keras.models.Model(model.inputs, output)
-model.compile(optimizer=Adam(1e-5))
+model = keras.models.Model(model.inputs, output)
+model.compile(optimizer=keras.optimizers.Adam(1e-5))
 model.summary()
 
 
@@ -231,5 +226,5 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
+    pass

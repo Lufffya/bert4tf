@@ -1,15 +1,11 @@
-#! -*- coding: utf-8 -*-
 # 用CRF做中文命名实体识别
 # 数据集 http://s3.bmio.net/kashgari/china-people-daily-ner-corpus.tar.gz
 # 实测验证集的F1可以到96.48%，测试集的F1可以到95.38%
 
-import numpy as np
-from tqdm import tqdm
 from snippets import *
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding, DataGenerator
 from bert4tf.snippets import to_array, ViterbiDecoder
-from bert4tf.layers import Dense, ConditionalRandomField
+from bert4tf.layers import ConditionalRandomField
 
 
 maxlen = 256
@@ -86,19 +82,19 @@ class data_generator(DataGenerator):
 
 
 # 后面的代码使用的是bert类型的模型，如果你用的是albert，那么前几行请改为：
-# model = build_transformer_model(config_path, checkpoint_path, model='albert')
+# model = build_bert_model(config_path, checkpoint_path, model='albert')
 # output_layer = 'Transformer-FeedForward-Norm'
 # output = model.get_layer(output_layer).get_output_at(bert_layers - 1)
 
-model = build_transformer_model(config_path_zh, checkpoint_path_zh)
+model = build_bert_model(config_path_zh, checkpoint_path_zh)
 
 output_layer = 'Transformer-%s-FeedForward-Norm' % (bert_layers - 1)
 output = model.get_layer(output_layer).output
-output = Dense(len(categories) * 2 + 1)(output)
+output = keras.layers.Dense(len(categories) * 2 + 1)(output)
 CRF = ConditionalRandomField(lr_multiplier=crf_lr_multiplier)
 output = CRF(output)
-model = Model(model.input, output)
-model.compile(loss=CRF.sparse_loss, optimizer=Adam(learning_rate), metrics=[CRF.sparse_accuracy])
+model = keras.models.Model(model.input, output)
+model.compile(loss=CRF.sparse_loss, optimizer=keras.optimizers.Adam(learning_rate), metrics=[CRF.sparse_accuracy])
 model.summary()
 
 
@@ -171,6 +167,6 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs,callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
     # NER.trans = K.eval(CRF.trans)
+    pass

@@ -1,15 +1,10 @@
-#! -*- coding: utf-8- -*-
 # 用Seq2Seq做阅读理解构建
 # 根据篇章先采样生成答案, 然后采样生成问题
 # 数据集同 https://github.com/bojone/dgcnn_for_reading_comprehension
 
-import json, os
-import numpy as np
-from tqdm import tqdm
 from snippets import *
 from bert4tf.layers import Loss
 from bert4tf.tokenizer import load_vocab
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding, text_segmentate
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
 
@@ -105,8 +100,8 @@ model = build_bert_model(
 
 output = CrossEntropy(2)(model.inputs + model.outputs)
 
-model = tf.keras.models.Model(model.inputs, output)
-model.compile(optimizer=Adam(1e-5))
+model = keras.models.Model(model.inputs, output)
+model.compile(optimizer=keras.optimizers.Adam(1e-5))
 model.summary()
 
 
@@ -163,6 +158,6 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=1000, epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
     # predict_to_file(valid_data, 'qa.csv')
+    pass

@@ -1,19 +1,12 @@
-#! -*- coding: utf-8 -*-
 # 用CRF做中文分词（CWS, Chinese Word Segmentation）
 # 数据集 http://sighan.cs.uchicago.edu/bakeoff2005/
 # 最后测试集的F1约为96.1%
 
-import os
-import re
-import json
 from this import d
-import numpy as np
-from tqdm import tqdm
 from snippets import *
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding, DataGenerator
 from bert4tf.snippets import to_array, ViterbiDecoder
-from bert4tf.layers import Dense, ConditionalRandomField
+from bert4tf.layers import ConditionalRandomField
 
 
 maxlen = 256
@@ -100,11 +93,11 @@ model = build_bert_model(config_path_zh, checkpoint_path_zh)
 
 output_layer = 'Transformer-%s-FeedForward-Norm' % (bert_layers - 1)
 output = model.get_layer(output_layer).output
-output = Dense(num_labels)(output)
+output = keras.layers.Dense(num_labels)(output)
 CRF = ConditionalRandomField(lr_multiplier=crf_lr_multiplier)
 output = CRF(output)
-model = tf.keras.models.Model(model.input, output)
-model.compile(loss=CRF.sparse_loss, optimizer=Adam(learning_rate), metrics=[CRF.sparse_accuracy])
+model = keras.models.Model(model.input, output)
+model.compile(loss=CRF.sparse_loss, optimizer=keras.optimizers.Adam(learning_rate), metrics=[CRF.sparse_accuracy])
 model.summary()
 
 
@@ -191,6 +184,6 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
     # segmenter.trans = K.eval(CRF.trans)
+    pass

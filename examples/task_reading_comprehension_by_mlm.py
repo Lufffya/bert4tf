@@ -1,17 +1,11 @@
-#! -*- coding: utf-8 -*-
 # 用MLM的方式做阅读理解任务
 # 数据集和评测同 https://github.com/bojone/dgcnn_for_reading_comprehension
 # 10个epoch后在valid上能达到约0.77的分数
 # (Accuracy=0.7282149325820084  F1=0.8207266829447049  Final=0.7744708077633566)
 
-import json, os, re
-import numpy as np
-from tqdm import tqdm
 from snippets import *
 from bert4tf.tokenizer import load_vocab
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding, DataGenerator
-from bert4tf.layers import Lambda
 
 
 max_p_len = 256
@@ -94,7 +88,7 @@ model = build_bert_model(
     keep_tokens=keep_tokens # 只保留keep_tokens中的字, 精简原字表
 )
 
-output = Lambda(lambda x: x[:, 1:max_a_len + 1])(model.output)
+output = keras.layers.Lambda(lambda x: x[:, 1:max_a_len + 1])(model.output)
 model = tf.keras.models.Model(model.input, output)
 model.summary()
 
@@ -109,7 +103,7 @@ def masked_cross_entropy(y_true, y_pred):
     return cross_entropy
 
 
-model.compile(loss=masked_cross_entropy, optimizer=Adam(1e-5))
+model.compile(loss=masked_cross_entropy, optimizer=keras.optimizers.Adam(1e-5))
 
 
 def get_ngram_set(x, n):
@@ -205,5 +199,5 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
+    pass

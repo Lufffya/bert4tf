@@ -1,4 +1,3 @@
-#! -*- coding: utf-8 -*-
 # bert 基础测试: MLM
 
 from snippets import *

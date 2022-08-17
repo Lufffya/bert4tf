@@ -1,16 +1,12 @@
-#! -*- coding: utf-8 -*-
 # 用 语言模型+棋谱 的方式监督训练一个下中国象棋模型
 # 介绍: https://kexue.fm/archives/7877
 # 数据: https://github.com/bojone/gpt_cchess
 # 模型训练可以在python2/python3进行. 但是cchess模块只支持python3,
 # 因此如果需要交互式体验模型棋力, 那么需要在python3下进行
 
-import json
-import numpy as np
 from snippets import *
 from bert4tf.layers import Loss
 from bert4tf.tokenizer import load_vocab
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator
 from cchess import *
@@ -105,8 +101,8 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
-model = tf.keras.models.Model(model.inputs, output)
-model.compile(optimizer=Adam(1e-5))
+model = keras.models.Model(model.inputs, output)
+model.compile(optimizer=keras.optimizers.Adam(1e-5))
 model.summary()
 
 

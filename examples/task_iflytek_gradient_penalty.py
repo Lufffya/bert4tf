@@ -1,16 +1,12 @@
-#! -*- coding:utf-8 -*-
 # 通过梯度惩罚增强模型的泛化性能
 # 比CLUE榜单公开的同数据集上的BERT base的成绩高2%
 # 数据集: IFLYTEK' 长文本分类 (https://github.com/CLUEbenchmark/CLUE)
 # 博客: https://kexue.fm/archives/7234
 
 
-from tqdm import tqdm
 from snippets import *
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator
-from bert4tf.layers import Lambda, Dense
 
 # gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
 # for gpu in gpus:
@@ -75,8 +71,8 @@ bert = build_bert_model(
     return_keras_model=False
 )
 
-output = Lambda(lambda x: x[:, 0])(bert.model.output)
-output = Dense(units=num_classes, activation='softmax', kernel_initializer=bert.initializer)(output)
+output = keras.layers.Lambda(lambda x: x[:, 0])(bert.model.output)
+output = keras.layers.Dense(units=num_classes, activation='softmax', kernel_initializer=bert.initializer)(output)
 model = keras.models.Model(bert.model.input, output)
 model.summary()
 
@@ -102,7 +98,7 @@ def loss_with_gradient_penalty(y_true, y_pred, epsilon=1):
 
 model.compile(
     loss=loss_with_gradient_penalty,
-    optimizer=Adam(2e-5),
+    optimizer=keras.optimizers.Adam(2e-5),
     metrics=['sparse_categorical_accuracy']
 )
 
@@ -153,6 +149,6 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=50, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('best_model.weights')
     # predict_to_file('/root/CLUE-master/baselines/CLUEdataset/iflytek/test.json', 'iflytek_predict.json')
+    pass

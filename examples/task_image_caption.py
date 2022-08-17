@@ -1,17 +1,13 @@
-#! -*- coding: utf-8 -*-
 # bert做image caption任务, coco数据集
 # 通过Conditional Layer Normalization融入条件信息
 # 请参考: https://kexue.fm/archives/7124
 
 import cv2
-import json
-import numpy as np
 from snippets import *
-from bert4tf.tokenizer import  load_vocab
+from bert4tf.layers import Loss
+from bert4tf.tokenizer import load_vocab
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
-from bert4tf.layers import Loss
-from bert4tf.optimizers import Adam
 
 
 # 模型配置
@@ -142,8 +138,8 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
-model = tf.keras.models.Model(model.inputs, output)
-model.compile(optimizer=Adam(1e-5))
+model = keras.models.Model(model.inputs, output)
+model.compile(optimizer=keras.optimizers.Adam(1e-5))
 model.summary()
 
 
@@ -201,8 +197,9 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
+    pass
+
 """
 image_id: COCO_val2014_000000524611.jpg
 url: http://images.cocodataset.org/val2014/COCO_val2014_000000524611.jpg

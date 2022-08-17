@@ -124,13 +124,13 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
-model = tf.keras.models.Model(model.inputs, output)
+model = keras.models.Model(model.inputs, output)
 model.compile(optimizer=keras.optimizers.Adam(1e-5))
 model.summary()
 
 
 if __name__ == '__main__':
-    data = load_data(r'data/waimai_comment.csv')
+    data = load_data(r'examples/datasets/waimai_comment.csv')
 
     evaluator = Evaluator()
     train_generator = data_generator(data, batch_size)

@@ -1,15 +1,11 @@
-#! -*- coding:utf-8 -*-
 # 通过虚拟对抗训练进行半监督学习
 # use_vat=True比use_vat=False约有1%的提升
 # 数据集: 情感分析数据集
 # 博客: https://kexue.fm/archives/7466
 
-import numpy as np
 from snippets import *
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator
-from bert4tf.layers import Lambda, Dense
 
 
 # 配置信息
@@ -76,17 +72,17 @@ bert = build_bert_model(
     return_keras_model=False
 )
 
-output = Lambda(lambda x: x[:, 0])(bert.model.output)
-output = Dense(units=num_classes, activation='softmax', kernel_initializer=bert.initializer)(output)
+output = keras.layers.Lambda(lambda x: x[:, 0])(bert.model.output)
+output = keras.layers.Dense(units=num_classes, activation='softmax', kernel_initializer=bert.initializer)(output)
 
 # 用于正常训练的模型
 model = keras.models.Model(bert.model.input, output)
-model.compile(loss='kld', optimizer=Adam(2e-5), metrics=['categorical_accuracy'])
+model.compile(loss='kld', optimizer=keras.optimizers.Adam(2e-5), metrics=['categorical_accuracy'])
 model.summary()
 
 # 用于虚拟对抗训练的模型
 model_vat = keras.models.Model(bert.model.input, output)
-model_vat.compile(loss='kld', optimizer=Adam(1e-5), metrics=['categorical_accuracy'])
+model_vat.compile(loss='kld', optimizer=keras.optimizers.Adam(1e-5), metrics=['categorical_accuracy'])
 
 
 def virtual_adversarial_training(model, embedding_name, epsilon=1, xi=10, iters=1):
@@ -178,5 +174,5 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=30, epochs=100, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('best_model.weights')
+    pass

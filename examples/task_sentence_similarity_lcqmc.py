@@ -1,13 +1,11 @@
-#! -*- coding:utf-8 -*-
 # 句子对分类任务, LCQMC数据集
 # val_acc: 0.887071, test_acc: 0.870320
 
 from snippets import *
 from bert4tf.backend import set_gelu
-from bert4tf.optimizers import Adam
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator
-from bert4tf.layers import Dropout, Dense
+
 
 set_gelu('tanh')  # 切换gelu版本
 
@@ -62,11 +60,11 @@ bert = build_bert_model(
     return_keras_model=False
 )
 
-output = Dropout(rate=0.1)(bert.model.output)
-output = Dense(units=2, activation='softmax', kernel_initializer=bert.initializer)(output)
+output = keras.layers.Dropout(rate=0.1)(bert.model.output)
+output = keras.layers.Dense(units=2, activation='softmax', kernel_initializer=bert.initializer)(output)
 model = keras.models.Model(bert.model.input, output)
 # 用足够小的学习率, optimizer=PiecewiseLinearLearningRate(Adam(5e-5), {10000: 1, 30000: 0.1})
-model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(2e-5), metrics=['accuracy'])
+model.compile(loss='sparse_categorical_crossentropy', optimizer=keras.optimizers.Adam(2e-5), metrics=['accuracy'])
 model.summary()
 
 # 转换数据集
@@ -109,5 +107,5 @@ if __name__ == '__main__':
     print(u'final test acc: %05f\n' % (Evaluator.evaluate(test_generator)))
 
 else:
-    pass
     # model.load_weights('best_model.weights')
+    pass

@@ -1,12 +1,8 @@
-#! -*- coding: utf-8 -*-
 # bert做language model任务, 小说生成
 
-import glob, re
-import numpy as np
-from tqdm import tqdm
+import re, glob
 from snippets import *
 from bert4tf.layers import Loss
-from bert4tf.optimizers import Adam
 from bert4tf.tokenizer import load_vocab
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
@@ -104,8 +100,8 @@ model = build_bert_model(
 )
 
 output = CrossEntropy(output_axis=1)([model.inputs[0], model.outputs[0]])
-model = tf.keras.models.Model(model.inputs, output)
-model.compile(optimizer=Adam(1e-5))
+model = keras.models.Model(model.inputs, output)
+model.compile(optimizer=keras.optimizers.Adam(1e-5))
 model.summary()
 
 
@@ -161,8 +157,9 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=steps_per_epoch, epochs=epochs, callbacks=[evaluator])
 
 else:
-    pass
     # model.load_weights('./best_model.weights')
+    pass
+
 """
 效果：
 输入: 当晚两人在一家小客店中宿歇。张无忌躺在炕上，越想越是担心，走到赵敏窗外，但听她呼吸调匀，正自香梦沉酣。
