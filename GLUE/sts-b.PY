@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # STS-B: The Semantic Textual Similarity Benchmark(语义文本相似性基准测试)
 # describe: 语义相似度, 判断两个句子之前的语义相似度评分(0-5)
 # metric: Pearson and Spearman correlation coefficients
@@ -55,7 +54,6 @@ tokenizer = Tokenizer(dict_path, do_lower_case=True)
 class data_generator(DataGenerator):
     """数据生成器
     """
-
     def __iter__(self, random=False):
         batch_token_ids, batch_segment_ids, batch_labels = [], [], []
         for is_end, (text1, text2, label) in self.sample(random):
@@ -79,10 +77,10 @@ bert = build_bert_model(
     return_keras_model=False
 )
 
-output = Dropout(rate=0.1)(bert.model.output)
-output = Dense(units=1, kernel_initializer=bert.initializer)(output)
+output = keras.layers.Dropout(rate=0.1)(bert.model.output)
+output = keras.layers.Dense(units=1, kernel_initializer=bert.initializer)(output)
 model = keras.models.Model(bert.model.input, output)
-model.compile(loss='mse', optimizer=Adam(2e-5), metrics=['mse'])  # 用足够小的学习率
+model.compile(loss='mse', optimizer=keras.optimizers.Adam(2e-5), metrics=['mse'])
 model.summary()
 
 # 转换数据集
@@ -93,7 +91,6 @@ valid_generator = data_generator(valid_data, batch_size)
 class Evaluator(keras.callbacks.Callback):
     """评估与保存
     """
-
     def __init__(self):
         self.best_val_pearson_corr = 0.
 
@@ -143,11 +140,10 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=10, callbacks=[evaluator])
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=2, callbacks=[evaluator])
 
     # model.load_weights('best_model_STS-B.weights')
-    # 预测测试集, 输出到结果文件
     # test_predict(in_file = './datasets/STS-B/test.tsv', out_file = './results/STS-B.tsv')
 else:
-    pass
     # model.load_weights('best_model_STS-B.weights')
+    pass

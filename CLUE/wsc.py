@@ -13,7 +13,7 @@ labels = ['false', 'true']
 num_classes = len(labels)
 maxlen = 128
 batch_size = 32
-epochs = 30
+epochs = 2
 
 
 def load_data(filename):
@@ -21,7 +21,7 @@ def load_data(filename):
     格式: [(文本, 标签id)]
     """
     D = []
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         for i, l in enumerate(f):
             l = json.loads(l)
             text, label = l['text'], labels.index(l.get('label', 'false'))
@@ -44,8 +44,8 @@ def load_data(filename):
 
 
 # 加载数据集
-train_data = load_data(data_path + 'cluewsc2020/train.json')
-valid_data = load_data(data_path + 'cluewsc2020/dev.json')
+train_data = load_data(data_path + 'wsc/train.json')
+valid_data = load_data(data_path + 'wsc/dev.json')
 
 
 class data_generator(DataGenerator):
@@ -75,7 +75,7 @@ output = base.model.get_layer(last_layer).output
 output = pooling_layer(output)
 output = keras.layers.Dense(units=num_classes, activation='softmax', kernel_initializer=base.initializer)(output)
 model = keras.models.Model(base.model.input, output)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+model.compile(loss='sparse_categorical_crossentropy', optimizer=keras.optimizers.Adam(learning_rate), metrics=['accuracy'])
 model.summary()
 
 
@@ -134,5 +134,6 @@ if __name__ == '__main__':
     # test_predict(in_file=data_path + 'wsc/test.json', out_file='results/cluewsc11_predict.json')
 
 else:
-    pass
     # model.load_weights('weights/wsc.weights')
+    pass
+    

@@ -1,12 +1,11 @@
-#! -*- coding:utf-8 -*-
 # RTE: The Recognizing Textual Entailment datasets(识别文本蕴含数据集)
 # describe: 自然语言推理, 判断两个句子是否蕴含
 # metric: accuracy
 
 from snippets import *
 
-set_gelu('tanh')  # 切换gelu版本
 
+set_gelu('tanh')  # 切换gelu版本
 labels = ['entailment', 'not_entailment']
 num_classes = len(labels)
 maxlen = 128
@@ -78,10 +77,10 @@ bert = build_bert_model(
     return_keras_model=False
 )
 
-output = Lambda(lambda x: x[:, 0])(bert.model.output)
-output = Dense(units=num_classes, activation='softmax', kernel_initializer=bert.initializer)(output)
+output = keras.layers.Lambda(lambda x: x[:, 0])(bert.model.output)
+output = keras.layers.Dense(units=num_classes, activation='softmax', kernel_initializer=bert.initializer)(output)
 model = keras.models.Model(bert.model.input, output)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(2e-5), metrics=['accuracy']) # 用足够小的学习率
+model.compile(loss='sparse_categorical_crossentropy', optimizer=keras.optimizers.Adam(2e-5), metrics=['accuracy'])
 model.summary()
 
 # 转换数据集
@@ -139,10 +138,9 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=10, callbacks=[evaluator])
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=2, callbacks=[evaluator])
     # model.load_weights('best_model_RTE.weights')
-    # 预测测试集, 输出到结果文件
     # test_predict(in_file = './datasets/RTE/test.tsv', out_file = './results/RTE.tsv')
 else:
-    pass
     # model.load_weights('best_model_RTE.weights')
+    pass

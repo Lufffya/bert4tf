@@ -1,18 +1,13 @@
-# tnews 段文本分类 (Short Text Classification for News)
-# 思路: 取[CLS]然后接 Dense + Softmax 分类
+# SuperGLUE评测
+# CB文本相似度
+# 思路：premise和hypothesis拼接后取[CLS]然后接Dense+Softmax分类
 
-import json
-from tqdm import tqdm
 from snippets import *
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
+from sklearn.metrics import f1_score, accuracy_score
 
 
 # 基本参数
-labels = [
-    '100', '101', '102', '103', '104', '106', '107', '108', '109', 
-    '110', '112', '113', '114', '115', '116'
-]
+labels = ['entailment', 'neutral', 'contradiction']
 num_classes = len(labels)
 maxlen = 128
 batch_size = 32
@@ -21,20 +16,20 @@ epochs = 2
 
 def load_data(filename):
     """加载数据
-    格式: [(文本, 标签id)]
+    格式：[(premise, hypothesis, 标签id)]
     """
     D = []
-    with open(filename, encoding='utf-8') as f:
+    with open(filename) as f:
         for i, l in enumerate(f):
             l = json.loads(l)
-            text, label = l['sentence'], l.get('label', '100')
-            D.append((text, labels.index(label)))
+            text1, text2, label = l['premise'], l['hypothesis'], l.get('label', 'entailment')
+            D.append((text1, text2, labels.index(label)))
     return D
 
 
 # 加载数据集
-train_data = load_data(data_path + 'tnews/train.json')
-valid_data = load_data(data_path + 'tnews/dev.json')
+train_data = load_data(data_path + 'CB/train.jsonl')
+valid_data = load_data(data_path + 'CB/val.jsonl')
 
 
 class data_generator(DataGenerator):
@@ -42,10 +37,10 @@ class data_generator(DataGenerator):
     """
     def __iter__(self, random=False):
         batch_token_ids, batch_segment_ids, batch_labels = [], [], []
-        for is_end, (text, label) in self.sample(random):
-            token_ids, segment_ids = tokenizer.encode(text, maxlen=maxlen)
+        for is_end, (text1, text2, label) in self.sample(random):
+            token_ids, segment_ids = tokenizer.encode(text1, text2, maxlen=maxlen)
             batch_token_ids.append(token_ids)
-            batch_segment_ids.append(segment_ids)
+            batch_segment_ids.append([0] * len(segment_ids))
             batch_labels.append([label])
             if len(batch_token_ids) == self.batch_size or is_end:
                 batch_token_ids = sequence_padding(batch_token_ids)
@@ -72,29 +67,31 @@ class Evaluator(keras.callbacks.Callback):
     """保存验证集acc最好的模型
     """
     def __init__(self):
-        self.best_val_acc = 0.
+        self.best_val_f1 = 0.
 
     def on_epoch_end(self, epoch, logs=None):
-        val_acc = self.evaluate(valid_generator)
-        if val_acc > self.best_val_acc:
-            self.best_val_acc = val_acc
-            # model.save_weights('weights/tnews.weights')
-        print(u'val_acc: %.5f, best_val_acc: %.5f\n' % (val_acc, self.best_val_acc))
+        val_acc, f1 = self.evaluate(valid_generator)
+        if f1 > self.best_val_f1:
+            self.best_val_f1 = f1
+            # model.save_weights('weights/CB.weights')
+        print(u'val_F1: %.5f, best_val_F1: %.5f, accuracy: %.5f\n' %(val_acc, self.best_val_f1, val_acc))
 
-    @staticmethod
-    def evaluate(data):
-        total, right = 0., 0.
+    def evaluate(self, data):
+        y_true_all = np.array([], dtype=int)
+        y_pred_all = np.array([], dtype=int)
         for x_true, y_true in data:
             y_pred = model.predict(x_true).argmax(axis=1)
             y_true = y_true[:, 0]
-            total += len(y_true)
-            right += (y_true == y_pred).sum()
-        return right / total
-
+            y_pred_all = np.append(y_pred_all, y_pred)
+            y_true_all = np.append(y_true_all, y_true)
+        acc = accuracy_score(y_true_all,y_pred_all)
+        f1 = f1_score(y_true_all,y_pred_all, average='micro')
+        return acc, f1
+ 
 
 def test_predict(in_file, out_file):
     """输出测试结果到文件
-    结果文件可以提交到 https://www.cluebenchmarks.com 评测.
+    结果文件可以提交到 https://super.gluebenchmark.com/ 评测。
     """
     test_data = load_data(in_file)
     test_generator = data_generator(test_data, batch_size)
@@ -103,12 +100,11 @@ def test_predict(in_file, out_file):
     for x_true, _ in tqdm(test_generator, ncols=0):
         y_pred = model.predict(x_true).argmax(axis=1)
         results.extend(y_pred)
-
     fw = open(out_file, 'w')
     with open(in_file) as fr:
         for l, r in zip(fr, results):
             l = json.loads(l)
-            l = json.dumps({'id': str(l['id']), 'label': labels[r]})
+            l = json.dumps({'idx': str(l['idx']), 'label': labels[r]})
             fw.write(l + '\n')
     fw.close()
 
@@ -118,10 +114,9 @@ if __name__ == '__main__':
 
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
-    # model.load_weights('weights/tnews.weights')
-    # test_predict(in_file=data_path + 'tnews/test1.0.json', out_file='results/tnews10_predict.json')
-    # test_predict(in_file=data_path + 'tnews/test.json', out_file='results/tnews11_predict.json')
+    # model.load_weights('weights/CB.weights')
+    # test_predict(in_file=data_path + 'CB/test.jsonl', out_file='results/CB.jsonl')
 
 else:
-    # model.load_weights('weights/tnews.weights')
+    # model.load_weights('weights/CB.weights')
     pass

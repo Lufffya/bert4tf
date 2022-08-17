@@ -12,7 +12,7 @@ from bert4tf.snippets import DataGenerator
 num_classes = 2
 maxlen = 128
 batch_size = 32
-epochs = 10
+epochs = 2
 
 
 def load_data(filename):
@@ -20,7 +20,7 @@ def load_data(filename):
     格式: [(关键词, 文本, 标签id)]
     """
     D = []
-    with open(filename) as f:
+    with open(filename, encoding='utf-8') as f:
         for i, l in enumerate(f):
             l = json.loads(l)
             text1, text2 = '；'.join(l['keyword']), l['abst']
@@ -61,7 +61,7 @@ output = base.model.get_layer(last_layer).output
 output = pooling_layer(output)
 output = keras.layers.Dense(units=num_classes, activation='softmax', kernel_initializer=base.initializer)(output)
 model = keras.models.Model(base.model.input, output)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
+model.compile(loss='sparse_categorical_crossentropy', optimizer=keras.optimizers.Adam(learning_rate), metrics=['accuracy'])
 model.summary()
 
 
@@ -119,5 +119,5 @@ if __name__ == '__main__':
     # test_predict(in_file=data_path + 'csl/test.json', out_file='results/csl_predict.json')
 
 else:
-    pass
     # model.load_weights('weights/csl.weights')
+    pass

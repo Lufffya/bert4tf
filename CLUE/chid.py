@@ -15,7 +15,7 @@ from scipy.optimize import linear_sum_assignment
 num_classes = 10
 maxlen = 64
 batch_size = 8
-epochs = 5
+epochs = 2
 
 
 def sample_split(texts, answers, candidates):
@@ -52,7 +52,7 @@ def load_data(q_file, a_file=None):
     格式: [(左文本, 右文本, 答案id, 候选词集)]
     """
     D = []
-    with open(q_file) as fq:
+    with open(q_file, encoding='utf-8') as fq:
         if a_file is not None:
             A = json.load(open(a_file))
         for i, l in enumerate(fq):
@@ -132,7 +132,7 @@ output = base.model.get_layer(last_layer).output
 output = pooling_layer(output)
 output = keras.layers.Dense(units=1, kernel_initializer=base.initializer)(output)
 model = keras.models.Model(base.model.input, output)
-model.compile(loss=multichoice_crossentropy, optimizer=optimizer, metrics=[multichoice_accuracy])
+model.compile(loss=multichoice_crossentropy, optimizer=keras.optimizers.Adam(learning_rate), metrics=[multichoice_accuracy])
 model.summary()
 
 
@@ -200,5 +200,5 @@ if __name__ == '__main__':
     # test_predict(in_file=data_path + 'chid/test1.1.json', out_file='results/chid11_predict.json')
 
 else:
-    pass
     # model.load_weights('weights/chid.weights')
+    pass

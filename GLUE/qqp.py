@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # QQP: The Quora Question Pairs(Quora问题对数集)
 # describe: 语义相似度, 判断两个句子的语义相似度
 # metric: accuracy 和 f1
@@ -78,10 +77,10 @@ bert = build_bert_model(
     return_keras_model=False
 )
 
-output = Dropout(rate=0.1)(bert.model.output)
-output = Dense(units=2, activation='softmax', kernel_initializer=bert.initializer)(output)
+output = keras.layers.Dropout(rate=0.1)(bert.model.output)
+output = keras.layers.Dense(units=2, activation='softmax', kernel_initializer=bert.initializer)(output)
 model = keras.models.Model(bert.model.input, output)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(2e-5), metrics=['accuracy']) # 用足够小的学习率 
+model.compile(loss='sparse_categorical_crossentropy', optimizer=keras.optimizers.Adam(2e-5), metrics=['accuracy'])
 model.summary()
 
 # 转换数据集
@@ -143,11 +142,11 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=10, callbacks=[evaluator])
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=2, callbacks=[evaluator])
     
     # model.load_weights('best_model_QQP.weights')
-    # 预测测试集, 输出到结果文件
     # test_predict(in_file = './datasets/QQP/test.tsv', out_file = './results/QQP.tsv')
 else:
-    pass
     # model.load_weights('best_model_QQP.weights')
+    pass
+

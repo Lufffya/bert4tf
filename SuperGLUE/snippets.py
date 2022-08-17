@@ -1,32 +1,39 @@
-# CLUE 评测 - 模型配置文件
+#! -*- coding: utf-8 -*-
+# SuperGLUE评测
+# 模型配置文件
 
-import os, sys
+import numpy as np
+import os, sys, csv, json
+from tqdm import tqdm
 from download import download
 sys.path.append('../bert4tf')
+from bert4tf.backend import set_gelu
 from bert4tf.backend import tf, keras, K
 from bert4tf.tokenizer import Tokenizer
 from bert4tf.bert import build_bert_model
+from bert4tf.snippets import sequence_padding
+from bert4tf.snippets import DataGenerator
 
 
 download()
 
 # 通用参数
-data_path = r'CLUE/datasets/'
-learning_rate = 5e-4
+data_path = r'SuperGLUE/datasets/'
+learning_rate = 4e-5
 pooling = 'first'
 
 # 权重目录
-# if not os.path.exists(r'CLUE/weights'):
-#     os.mkdir(r'CLUE/weights')
+# if not os.path.exists('weights'):
+#     os.mkdir('weights')
 
 # 输出目录
-# if not os.path.exists(r'CLUE/results'):
-#     os.mkdir(r'CLUE/results')
+# if not os.path.exists('results'):
+#     os.mkdir('results')
 
 # 模型路径
-config_path = r'models/chinese_L-12_H-768_A-12/bert_config.json'
-checkpoint_path = r'models/chinese_L-12_H-768_A-12/bert_model.ckpt'
-dict_path = r'models/chinese_L-12_H-768_A-12/vocab.txt'
+config_path = r'models/uncased_L-12_H-768_A-12/bert_config.json'
+checkpoint_path = r'models/uncased_L-12_H-768_A-12/bert_model.ckpt'
+dict_path = r'models/uncased_L-12_H-768_A-12/vocab.txt'
 
 # 建立分词器
 tokenizer = Tokenizer(dict_path, do_lower_case=True)

@@ -1,4 +1,6 @@
 __pycache__
 /CLUE/datasets
-/GLUE/datasets
+/GLUE/datasets/*
+!/GLUE/datasets/MRPC
+/SuperGLUE/datasets
 /models

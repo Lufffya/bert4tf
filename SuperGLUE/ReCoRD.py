@@ -1,13 +1,10 @@
-# cmrc2018 阅读理解(Reading Comprehension for Simplified Chinese)
-# 思路: 基于滑动窗口和 GlobalPointer
+# SuperGLUE评测
+# ReCoRD阅读理解
+# 思路：基于滑动窗口和GlobalPointer
 
-import json
-import numpy as np
-from tqdm import tqdm
 from snippets import *
 from itertools import groupby
 from bert4tf.layers import GlobalPointer
-from bert4tf.snippets import sequence_padding, DataGenerator
 from bert4tf.snippets import lowercase_and_normalize
 
 
@@ -26,6 +23,7 @@ def stride_split(i, q, c, a, s):
     c = lowercase_and_normalize(c)
     a = lowercase_and_normalize(a)
     e = s + len(a)
+
     # 滑窗分割
     results, n = [], 0
     max_c_len = maxlen - len(q) - 3
@@ -40,25 +38,45 @@ def stride_split(i, q, c, a, s):
         n += 1
 
 
-def load_data(filename):
+def load_data(filename, is_test = False):
     """加载数据
-    格式: [(id, 问题, 篇章, 答案, start, end)]
+    格式：[(id, 问题, 篇章, 答案, start, end)]
     """
     D = []
-    data = json.load(open(filename, encoding='utf-8'))['data']
-    for d in data:
-        for p in d['paragraphs']:
-            for qa in p['qas']:
-                for a in qa['answers']:
-                    D.extend(stride_split(qa['id'], qa['question'], p['context'], a['text'], a['answer_start']))
-                    if a['answer_start'] == -1:
-                        break
+    with open(filename) as f:
+        for i, l in enumerate(f):
+            l = json.loads(l)
+            qs, p  = l['qas'], l['passage']['text']
+            entities = l['passage']['entities']
+            entities_str = ""
+            for ent in entities:
+                ent_s = int(ent.get('start'))
+                ent_e = int(ent.get('end'))
+                ent_str = p[int(ent_s):int(ent_e)]
+                entities_str += ent_str + ' '
+            p += entities_str
+            if is_test:
+                for q in qs:
+                    inx = q['idx']
+                    q = q['query']
+                    D.extend(stride_split(inx, q, p, 'aaa'*500, len(q)))
+            else:
+                for q in qs:
+                    # print(q)
+                    inx = q['idx']
+                    ans = q['answers']
+                    q = q['query']
+                    for a in ans:
+                        D.extend(stride_split(inx, q, p, a['text'], a['start']))
+            # if len(D)>2000:
+            #     break
+    # print(D)
     return D
 
 
 # 加载数据集
-train_data = load_data(data_path + 'cmrc2018/train.json')
-valid_data = load_data(data_path + 'cmrc2018/dev.json')
+train_data = load_data(data_path + 'ReCoRD/train.jsonl')
+valid_data = load_data(data_path + 'ReCoRD/val.jsonl')
 
 
 class data_generator(DataGenerator):
@@ -101,7 +119,7 @@ valid_generator = data_generator(valid_data, batch_size)
 
 
 class CustomMasking(keras.layers.Layer):
-    """自定义mask(主要用于mask掉question部分)
+    """自定义mask（主要用于mask掉question部分）
     """
     def compute_mask(self, inputs, mask=None):
         return K.greater(inputs[1], 0.5)
@@ -147,7 +165,7 @@ output = CustomMasking()([output, masks_in])
 output = GlobalPointer(heads=1, head_size=base.attention_head_size, use_bias=False, kernel_initializer=base.initializer)(output)
 output = keras.layers.Lambda(lambda x: x[:, 0])(output)
 model = keras.models.Model(base.model.inputs + [masks_in], output)
-model.compile(loss=globalpointer_crossentropy, optimizer=keras.optimizers.Adam(learning_rate) , metrics=[globalpointer_accuracy])
+model.compile(loss=globalpointer_crossentropy, optimizer=keras.optimizers.Adam(learning_rate),metrics=[globalpointer_accuracy])
 model.summary()
 
 
@@ -161,11 +179,10 @@ class Evaluator(keras.callbacks.Callback):
         val_acc = self.evaluate(valid_data, valid_generator)
         if val_acc > self.best_val_acc:
             self.best_val_acc = val_acc
-            # model.save_weights('weights/cmrc2018.weights')
+            # model.save_weights('weights/ReCoRD.weights')
         print(u'val_acc: %.5f, best_val_acc: %.5f\n' % (val_acc, self.best_val_acc))
 
-    @staticmethod
-    def evaluate(data, generator):
+    def evaluate(self, data, generator):
         Y_scores = np.empty((0, 1))
         Y_start_end = np.empty((0, 2), dtype=int)
         Y_true = np.empty((0, 2), dtype=int)
@@ -198,9 +215,9 @@ class Evaluator(keras.callbacks.Callback):
 
 def test_predict(in_file, out_file):
     """输出测试结果到文件
-    结果文件可以提交到 https://www.cluebenchmarks.com 评测
+    结果文件可以提交到 https://super.gluebenchmark.com/ 评测。
     """
-    test_data = load_data(in_file)
+    test_data = load_data(in_file, is_test = True)
     test_generator = data_generator(test_data, batch_size)
 
     Y_scores = np.empty((0, 1))
@@ -230,9 +247,16 @@ def test_predict(in_file, out_file):
         start, end = start - len(q_tokens), end - len(q_tokens)
         results[k] = c[mapping[start][0]:mapping[end][-1] + 1]
         n += g
-
-    with open(out_file, 'w', encoding='utf-8') as f:
-        json.dump(results, f, ensure_ascii=False, indent=4)
+    # print(results)
+    fw = open(out_file, 'w', encoding='utf-8')
+    with open(in_file) as fr:
+        for l, r in zip(fr, results.values()):
+            l = json.loads(l)
+            for q in l['qas']:
+                inx = q['idx']
+                l = json.dumps({'idx': inx, 'label':str(r)})
+                fw.write(l + '\n')
+    fw.close()
 
 
 if __name__ == '__main__':
@@ -240,9 +264,9 @@ if __name__ == '__main__':
 
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
-    # model.load_weights('weights/cmrc2018.weights')
-    # test_predict(in_file=data_path + 'cmrc2018/test.json', out_file='results/cmrc2018_predict.json')
+    # model.load_weights('weights/ReCoRD.weights')
+    # test_predict(in_file=data_path + 'ReCoRD/test.jsonl', out_file='results/ReCoRD.jsonl')
 
 else:
-    # model.load_weights('weights/cmrc2018.weights')
+    # model.load_weights('weights/ReCoRD.weights')
     pass

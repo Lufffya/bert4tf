@@ -1,18 +1,13 @@
-# tnews 段文本分类 (Short Text Classification for News)
-# 思路: 取[CLS]然后接 Dense + Softmax 分类
+# SuperGLUE评测
+# WSC代词消歧
+# 思路：给span1、span2加上特殊标记，然后当成文本分类
 
-import json
-from tqdm import tqdm
+import re
 from snippets import *
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
 
 
 # 基本参数
-labels = [
-    '100', '101', '102', '103', '104', '106', '107', '108', '109', 
-    '110', '112', '113', '114', '115', '116'
-]
+labels = [False, True]
 num_classes = len(labels)
 maxlen = 128
 batch_size = 32
@@ -21,20 +16,40 @@ epochs = 2
 
 def load_data(filename):
     """加载数据
-    格式: [(文本, 标签id)]
+    格式：[(文本, 标签id)]
     """
     D = []
-    with open(filename, encoding='utf-8') as f:
+    with open(filename) as f:
         for i, l in enumerate(f):
             l = json.loads(l)
-            text, label = l['sentence'], l.get('label', '100')
-            D.append((text, labels.index(label)))
+            text, label = l['text'], labels.index(l.get('label', False))
+            text_sp = re.split(' ', text)  
+            s1 = l['target']['span1_index']
+            e1 = s1 + len(re.split(' ', l['target']['span1_text'])) 
+            s2 = l['target']['span2_index']
+            e2 = s2 + len(re.split(' ',l['target']['span2_text']))
+            text_new = ''
+            if s1 < s2:
+                text_sp.insert(s1,'|')
+                text_sp.insert(e1+1,'|' )
+                text_sp.insert(s2+2,'[')
+                text_sp.insert(e2+3,']' )
+                for w in text_sp:
+                    text_new += w + ' '
+            else:
+                text_sp.insert(s2,'|')
+                text_sp.insert(e2+1,'|' )
+                text_sp.insert(s1+2,'[')
+                text_sp.insert(e1+3,']' )
+                for w in text_sp:
+                    text_new += w + ' '
+            D.append((text_new, label))
     return D
 
 
 # 加载数据集
-train_data = load_data(data_path + 'tnews/train.json')
-valid_data = load_data(data_path + 'tnews/dev.json')
+train_data = load_data(data_path + 'WSC/train.jsonl')
+valid_data = load_data(data_path + 'WSC/val.jsonl')
 
 
 class data_generator(DataGenerator):
@@ -78,11 +93,10 @@ class Evaluator(keras.callbacks.Callback):
         val_acc = self.evaluate(valid_generator)
         if val_acc > self.best_val_acc:
             self.best_val_acc = val_acc
-            # model.save_weights('weights/tnews.weights')
+            # model.save_weights('weights/WSC.weights')
         print(u'val_acc: %.5f, best_val_acc: %.5f\n' % (val_acc, self.best_val_acc))
 
-    @staticmethod
-    def evaluate(data):
+    def evaluate(self, data):
         total, right = 0., 0.
         for x_true, y_true in data:
             y_pred = model.predict(x_true).argmax(axis=1)
@@ -94,7 +108,7 @@ class Evaluator(keras.callbacks.Callback):
 
 def test_predict(in_file, out_file):
     """输出测试结果到文件
-    结果文件可以提交到 https://www.cluebenchmarks.com 评测.
+    结果文件可以提交到 https://super.gluebenchmark.com/ 评测。
     """
     test_data = load_data(in_file)
     test_generator = data_generator(test_data, batch_size)
@@ -103,12 +117,12 @@ def test_predict(in_file, out_file):
     for x_true, _ in tqdm(test_generator, ncols=0):
         y_pred = model.predict(x_true).argmax(axis=1)
         results.extend(y_pred)
-
+    labels_map = ['false','true']
     fw = open(out_file, 'w')
     with open(in_file) as fr:
         for l, r in zip(fr, results):
             l = json.loads(l)
-            l = json.dumps({'id': str(l['id']), 'label': labels[r]})
+            l = json.dumps({'idx': str(l['idx']), 'label': labels_map[r]})
             fw.write(l + '\n')
     fw.close()
 
@@ -118,10 +132,9 @@ if __name__ == '__main__':
 
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
-    # model.load_weights('weights/tnews.weights')
-    # test_predict(in_file=data_path + 'tnews/test1.0.json', out_file='results/tnews10_predict.json')
-    # test_predict(in_file=data_path + 'tnews/test.json', out_file='results/tnews11_predict.json')
+    # model.load_weights('weights/WSC.weights')
+    # test_predict(in_file=data_path + 'WSC/test.jsonl', out_file='results/WSC.jsonl')
 
 else:
-    # model.load_weights('weights/tnews.weights')
+    # model.load_weights('weights/WSC.weights')
     pass

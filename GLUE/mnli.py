@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # MNLI: The Multi-Genre Natural Language Inference Corpus(多类型自然语言推理数据库)
 # describe: 自然语言推理, 判断两个句子之前的关系(蕴含(entailment), 矛盾(contradiction), 中立(neutral))
 # metric: matched accuracy/mismatched accuracy
@@ -96,10 +95,10 @@ bert = build_bert_model(
     return_keras_model=False
 )
 
-output = Dropout(rate=0.1)(bert.model.output)
-output = Dense(units=3, activation='softmax', kernel_initializer=bert.initializer)(output)
+output = keras.layers.Dropout(rate=0.1)(bert.model.output)
+output = keras.layers.Dense(units=3, activation='softmax', kernel_initializer=bert.initializer)(output)
 model = keras.models.Model(bert.model.input, output)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(2e-5), metrics=['accuracy']) # 用足够小的学习率 
+model.compile(loss='sparse_categorical_crossentropy', optimizer=keras.optimizers.Adam(2e-5), metrics=['accuracy'])
 model.summary()
 
 # 转换数据集
@@ -119,7 +118,7 @@ class Evaluator(keras.callbacks.Callback):
         val_acc_mis = self.evaluate(valid_generator_mis)
         if val_acc > self.best_val_acc:
             self.best_val_acc = val_acc
-            model.save_weights('best_model_MNLI.weights')
+            # model.save_weights('best_model_MNLI.weights')
         print(u'Matched acc: %.5f, best_val_Matched acc: %.5f, Mismatched acc: %.5f\n' % (val_acc, self.best_val_acc, val_acc_mis))
 
     @staticmethod
@@ -158,13 +157,12 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=10, callbacks=[evaluator])
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=2, callbacks=[evaluator])
     
     # model.load_weights('best_model_MNLI.weights')
-    # 预测测试集, 输出到结果文件
     # test_predict(in_file = './datasets/MNLI/test_matched.tsv', out_file = './results/MNLI-m.tsv')
     # test_predict(in_file = './datasets/MNLI/test_mismatched.tsv', out_file = './results/MNLI-mm.tsv')
 
 else:
-    pass
     # model.load_weights('best_model_MNLI.weights')
+    pass

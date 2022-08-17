@@ -12,7 +12,7 @@ from bert4tf.backend import multilabel_categorical_crossentropy
 
 
 maxlen = 256
-epochs = 10
+epochs = 2
 batch_size = 32
 categories = set()
 
@@ -98,7 +98,7 @@ def globalpointer_f1score(y_true, y_pred):
 output = base.model.get_layer(last_layer).output
 output = GlobalPointer(heads=num_classes, head_size=base.attention_head_size, use_bias=False, kernel_initializer=base.initializer)(output)
 model = keras.models.Model(base.model.input, output)
-model.compile(loss=globalpointer_crossentropy, optimizer=optimizer, metrics=[globalpointer_f1score])
+model.compile(loss=globalpointer_crossentropy, optimizer=keras.optimizers.Adam(learning_rate), metrics=[globalpointer_f1score])
 model.summary()
 
 
@@ -168,8 +168,8 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('weights/cluener.weights')
-    test_predict(in_file=data_path + 'cluener/test.json', out_file='cluener/cluener_predict.json')
+    # test_predict(in_file=data_path + 'cluener/test.json', out_file='cluener/cluener_predict.json')
 
 else:
-    pass
     # model.load_weights('weights/cluener.weights')
+    pass

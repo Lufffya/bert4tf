@@ -1,4 +1,3 @@
-#! -*- coding:utf-8 -*-
 # CoLA: The Corpus of Linguistic Acceptability(语言可接受性语料库)
 # describe: 句子通顺度判断, 判断句子单词序列是否通顺
 # metric: Matthews correlation coefficient
@@ -51,7 +50,6 @@ tokenizer = Tokenizer(dict_path, do_lower_case=True)
 class data_generator(DataGenerator):
     """数据生成器
     """
-
     def __iter__(self, random=False):
         batch_token_ids, batch_segment_ids, batch_labels = [], [], []
         for is_end, (text, label) in self.sample(random):
@@ -79,17 +77,16 @@ bert = build_bert_model(
     return_keras_model=False
 )
 
-output = Dropout(rate=0.1)(bert.model.output)
-output = Dense(units=2, activation='softmax',kernel_initializer=bert.initializer)(output)
+output = keras.layers.Dropout(rate=0.1)(bert.model.output)
+output = keras.layers.Dense(units=2, activation='softmax', kernel_initializer=bert.initializer)(output)
 model = keras.models.Model(bert.model.input, output)
-model.compile(loss='sparse_categorical_crossentropy', optimizer=Adam(2e-5), metrics=['accuracy'])
+model.compile(loss='sparse_categorical_crossentropy', optimizer=keras.optimizers.Adam(2e-5), metrics=['accuracy'])
 model.summary()
 
 
 class Evaluator(keras.callbacks.Callback):
     """评估与保存
     """
-
     def __init__(self):
         self.best_val_mcc = 0.
 
@@ -142,12 +139,12 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=10, callbacks=[evaluator])
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=2, callbacks=[evaluator])
 
     # model.load_weights('best_model_CoLA.weights')
-    # 预测测试集, 输出到结果文件
     # test_predict(in_file = './datasets/CoLA/test.tsv', out_file = './results/CoLA.tsv')
 
 else:
-    pass
     # model.load_weights('best_model_CoLA.weights')
+    pass
+

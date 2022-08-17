@@ -12,7 +12,7 @@ from bert4tf.snippets import DataGenerator
 num_classes = 2
 maxlen = 128
 batch_size = 32
-epochs = 10
+epochs = 2
 
 
 def load_data(filename):
@@ -116,8 +116,9 @@ if __name__ == '__main__':
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('weights/afqmc.weights')
-    # test_predict(in_file=data_path + 'afqmc/test.json', out_file='results/afqmc_predict.json')
+    # test_predict(in_file=data_path + 'afqmc/test.json', out_file=data_path + 'afqmc/afqmc_predict.json')
 
 else:
-    pass
     # model.load_weights('weights/afqmc.weights')
+    pass
+    

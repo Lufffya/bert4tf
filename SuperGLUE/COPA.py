@@ -1,48 +1,34 @@
-# c3 多项选择阅读理解(Multiple-Choice Chinese Machine Reading Comprehension)
-# 思路: 每个选项分别与问题、篇章拼接后打分排序
+# SuperGLUE评测
+# COPA多项选择阅读理解
+# 思路：每个选项分别与前提和问题拼接后打分排序
 
-import json
-from tqdm import tqdm
 from snippets import *
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
 from bert4tf.snippets import truncate_sequences
 
 
 # 基本参数
-num_classes = 4
-maxlen = 512
-batch_size = 2
+num_classes = 2
+maxlen = 128
+batch_size = 32
 epochs = 2
 
 
 def load_data(filename):
     """加载数据
-    格式: [(篇章, 问题, 选项, 答案id)]
+    格式：[(premise, question, choice, label_id)]
     """
     D = []
-    with open(filename, encoding='utf-8') as f:
-        data = json.load(f)
-        for d in data:
-            p = u'||'.join(d[0])
-            for qa in d[1]:
-                q = qa['question']
-                while len(qa['choice']) < num_classes:
-                    qa['choice'].append(u'无效答案')
-                c = qa['choice'][:num_classes]
-                if 'answer' in qa:
-                    a = qa['choice'].index(qa['answer'])
-                else:
-                    a = 0
-                D.append((p, q, c, a))
+    with open(filename) as f:
+        for i, l in enumerate(f):
+            l = json.loads(l)
+            p, q, cs, label = l['premise'], l['question'], (l['choice1'],l['choice2']), l.get('label', 0)
+            D.append((p, q, cs, int(label)))
     return D
 
 
 # 加载数据集
-train_data = load_data(data_path + 'c3/m-train.json')
-train_data += load_data(data_path + 'c3/d-train.json')
-valid_data = load_data(data_path + 'c3/m-dev.json')
-valid_data += load_data(data_path + 'c3/d-dev.json')
+train_data = load_data(data_path + 'COPA/train.jsonl')
+valid_data = load_data(data_path + 'COPA/val.jsonl')
 
 
 class data_generator(DataGenerator):
@@ -50,7 +36,7 @@ class data_generator(DataGenerator):
     """
     def __iter__(self, random=False):
         batch_token_ids, batch_segment_ids, batch_labels = [], [], []
-        for is_end, (p, q, cs, a) in self.sample(random):
+        for is_end, (p, q, cs, label) in self.sample(random):
             for c in cs:
                 p_ids = tokenizer.encode(p)[0]
                 q_ids = tokenizer.encode(q)[0][1:]
@@ -59,7 +45,7 @@ class data_generator(DataGenerator):
                 token_ids = p_ids + q_ids + c_ids
                 batch_token_ids.append(token_ids)
                 batch_segment_ids.append([0] * len(token_ids))
-                batch_labels.append([a])
+                batch_labels.append([label])
             if len(batch_token_ids) == self.batch_size * num_classes or is_end:
                 batch_token_ids = sequence_padding(batch_token_ids)
                 batch_segment_ids = sequence_padding(batch_segment_ids)
@@ -109,11 +95,10 @@ class Evaluator(keras.callbacks.Callback):
         val_acc = self.evaluate(valid_generator)
         if val_acc > self.best_val_acc:
             self.best_val_acc = val_acc
-            # model.save_weights('weights/c3.weights')
-        print(u'val_acc: %.5f, best_val_acc: %.5f\n' % (val_acc, self.best_val_acc))
+            # model.save_weights('weights/COPA.weights')
+        print(u'val_acc: %.5f, best_val_acc: %.5f\n' %(val_acc, self.best_val_acc))
 
-    @staticmethod
-    def evaluate(data):
+    def evaluate(self, data):
         total, right = 0., 0.
         for x_true, y_true in data:
             y_pred = model.predict(x_true).reshape((-1, num_classes))
@@ -126,7 +111,7 @@ class Evaluator(keras.callbacks.Callback):
 
 def test_predict(in_file, out_file):
     """输出测试结果到文件
-    结果文件可以提交到 https://www.cluebenchmarks.com 评测.
+    结果文件可以提交到 https://super.gluebenchmark.com/ 评测。
     """
     test_data = load_data(in_file)
     test_generator = data_generator(test_data, batch_size)
@@ -139,13 +124,10 @@ def test_predict(in_file, out_file):
 
     fw = open(out_file, 'w')
     with open(in_file) as fr:
-        data = json.load(fr)
-        i = 0
-        for d in data:
-            for qa in d[1]:
-                l = json.dumps({'id': str(qa['id']), 'label': str(results[i])})
-                fw.write(l + '\n')
-                i += 1
+        for l, r in zip(fr, results):
+            l = json.loads(l)
+            l = json.dumps({'idx': str(l['idx']), 'label': int(r)})
+            fw.write(l + '\n')
     fw.close()
 
 
@@ -154,10 +136,9 @@ if __name__ == '__main__':
 
     model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
-    # model.load_weights('weights/c3.weights')
-    # test_predict(in_file=data_path + 'c3/test1.0.json', out_file='results/c310_predict.json')
-    # test_predict(in_file=data_path + 'c3/test1.1.json', out_file='results/c311_predict.json')
+    # model.load_weights('weights/COPA.weights')
+    # test_predict(in_file=data_path + 'COPA/test.jsonl', out_file='results/COPA.jsonl')
 
 else:
-    # model.load_weights('weights/c3.weights')
+    # model.load_weights('weights/COPA.weights')
     pass
