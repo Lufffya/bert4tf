@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 DATASET_FOLDER = r'GLUE/datasets/'
 
-CLUE = {
+GLUE = {
     'CoLA':'https://dl.fbaipublicfiles.com/glue/data/CoLA.zip',
     'SST-2':'https://dl.fbaipublicfiles.com/glue/data/SST-2.zip',
     'STS-B':'https://dl.fbaipublicfiles.com/glue/data/STS-B.zip',
@@ -23,7 +23,7 @@ CLUE = {
 def download():
     if not os.path.exists(DATASET_FOLDER):
         os.makedirs(DATASET_FOLDER)
-    for name, url in tqdm(CLUE.items()):
+    for name, url in tqdm(GLUE.items()):
         if os.path.exists(DATASET_FOLDER + name):
             continue
         print('downloading {}'.format(name))

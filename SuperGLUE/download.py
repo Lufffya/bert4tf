@@ -8,7 +8,7 @@ from zipfile import ZipFile
 
 DATASET_FOLDER = r'SuperGLUE/datasets/'
 
-CLUE = {
+SuperGLUE = {
     'AX-b':'https://dl.fbaipublicfiles.com/glue/superglue/data/v2/AX-b.zip',
     'CB':'https://dl.fbaipublicfiles.com/glue/superglue/data/v2/CB.zip',
     'COPA':'https://dl.fbaipublicfiles.com/glue/superglue/data/v2/COPA.zip',
@@ -25,7 +25,7 @@ CLUE = {
 def download():
     if not os.path.exists(DATASET_FOLDER):
         os.makedirs(DATASET_FOLDER)
-    for name, url in tqdm(CLUE.items()):
+    for name, url in tqdm(SuperGLUE.items()):
         if os.path.exists(DATASET_FOLDER + name):
             continue
         print('downloading {}'.format(name))

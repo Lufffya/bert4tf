@@ -3,4 +3,6 @@ __pycache__
 /GLUE/datasets/*
 !/GLUE/datasets/MRPC
 /SuperGLUE/datasets
+/examples/datasets/*
+!/examples/datasets/waimai_comment.csv
 /models
