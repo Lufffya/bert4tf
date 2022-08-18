@@ -1,6 +1,3 @@
-#! -*- coding: utf-8 -*-
-# 主要模型
-
 import json, numpy
 from bert4tf.layers import *
 from tensorflow.keras.models import Model

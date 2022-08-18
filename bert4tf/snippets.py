@@ -1,6 +1,3 @@
-#! -*- coding: utf-8 -*-
-# 代码合集
-
 import re
 import numpy as np
 import unicodedata

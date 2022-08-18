@@ -9,8 +9,8 @@ from bert4tf.layers import ConditionalRandomField
 
 
 maxlen = 256
-epochs = 10
-batch_size = 32
+epochs = 1
+batch_size = 16
 bert_layers = 12
 learning_rate = 2e-5  # bert_layers越小, 学习率应该要越大
 crf_lr_multiplier = 1000  # 必要时扩大CRF层的学习率
@@ -42,9 +42,9 @@ def load_data(filename):
 
 
 # 标注数据
-train_data = load_data('/root/ner/china-people-daily-ner-corpus/example.train')
-valid_data = load_data('/root/ner/china-people-daily-ner-corpus/example.dev')
-test_data = load_data('/root/ner/china-people-daily-ner-corpus/example.test')
+train_data = load_data(data_path + 'china-people-daily-ner-corpus/example.train')
+valid_data = load_data(data_path + 'china-people-daily-ner-corpus/example.dev')
+test_data = load_data(data_path + 'china-people-daily-ner-corpus/example.test')
 categories = list(sorted(categories))
 
 # 建立分词器
@@ -146,7 +146,7 @@ class Evaluator(keras.callbacks.Callback):
         f1, precision, recall = self.evaluate(test_data)
         print('test:  f1: %.5f, precision: %.5f, recall: %.5f\n' % (f1, precision, recall))
     
-    @staticmethod(function)
+    @staticmethod
     def evaluate(data):
         """评测函数
         """
@@ -160,11 +160,12 @@ class Evaluator(keras.callbacks.Callback):
         f1, precision, recall = 2 * X / (Y + Z), X / Y, X / Z
         return f1, precision, recall
 
+
 if __name__ == '__main__':
     evaluator = Evaluator()
     train_generator = data_generator(train_data, batch_size)
 
-    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs,callbacks=[evaluator])
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
 else:
     # model.load_weights('./best_model.weights')

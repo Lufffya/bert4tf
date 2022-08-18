@@ -1,6 +1,3 @@
-#! -*- coding: utf-8 -*-
-# 分词函数
-
 import re, unicodedata
 from bert4tf.snippets import truncate_sequences
 from bert4tf.snippets import lowercase_and_normalize
