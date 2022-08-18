@@ -5,14 +5,12 @@
 # 说明: 由于使用了EMA, 需要跑足够多的步数(5000步以上）才生效, 如果你的数据总量比较少, 那么请务必跑足够多的epoch数, 或者去掉EMA.
 
 from snippets import *
-from bert4tf.backend import batch_gather
-from bert4tf.optimizers import Adam, extend_with_exponential_moving_average
 from bert4tf.snippets import to_array, sequence_padding, DataGenerator
 from bert4tf.layers import Loss, LayerNormalization
 
 
 maxlen = 128
-batch_size = 64
+batch_size = 2
 
 
 def load_data(filename):
@@ -31,11 +29,11 @@ def load_data(filename):
 
 
 # 加载数据集
-train_data = load_data('/root/kg/datasets/train_data.json')
-valid_data = load_data('/root/kg/datasets/dev_data.json')
+train_data = load_data(data_path + 'task_relation_extraction/train_data.json')
+valid_data = load_data(data_path + 'task_relation_extraction/dev_data.json')
 predicate2id, id2predicate = {}, {}
 
-with open('/root/kg/datasets/all_50_schemas') as f:
+with open(data_path + 'task_relation_extraction/all_50_schemas', encoding='utf-8') as f:
     for l in f:
         l = json.loads(l)
         if l['predicate'] not in predicate2id:
@@ -116,6 +114,15 @@ class data_generator(DataGenerator):
                     batch_subject_labels, batch_subject_ids, batch_object_labels = [], [], []
 
 
+
+def batch_gather(params, indices):
+    """同tf旧版本的batch_gather
+    """
+    if K.dtype(indices)[:3] != 'int':
+        indices = K.cast(indices, 'int32')
+    return tf.gather(params, indices, batch_dims=K.ndim(indices) - 1)
+
+
 def extract_subject(inputs):
     """根据subject_ids从output中取出subject的向量表征
     """
@@ -179,13 +186,14 @@ class TotalLoss(Loss):
 subject_preds, object_preds = TotalLoss([2, 3])([subject_labels, object_labels, subject_preds, object_preds,bert.model.output])
 
 # 训练模型
-train_model = tf.keras.models.Model(
+train_model = keras.models.Model(
     bert.model.inputs + [subject_labels, subject_ids, object_labels],
     [subject_preds, object_preds]
 )
 
-AdamEMA = extend_with_exponential_moving_average(Adam, name='AdamEMA')
-optimizer = AdamEMA(learning_rate=1e-5)
+# AdamEMA = extend_with_exponential_moving_average(Adam, name='AdamEMA')
+# optimizer = AdamEMA(learning_rate=1e-5)
+optimizer = keras.optimizers.Adam(1e-5)
 train_model.compile(optimizer=optimizer)
 
 

@@ -1,4 +1,3 @@
-#! -*- coding: utf-8 -*-
 # 忽略tensorflow的warning信息
 
 import os

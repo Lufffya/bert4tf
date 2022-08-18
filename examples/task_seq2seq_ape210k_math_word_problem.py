@@ -5,7 +5,6 @@
 # 介绍链接: https://kexue.fm/archives/7809
 
 from snippets import *
-from sympy import Integer
 from bert4tf.layers import Loss
 from bert4tf.tokenizer import load_vocab
 from bert4tf.snippets import sequence_padding

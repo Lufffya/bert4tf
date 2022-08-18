@@ -35,21 +35,6 @@ def set_gelu(version):
         keras.utils.get_custom_objects()['gelu'] = gelu_tanh
 
 
-def batch_gather(params, indices):
-    """同tf旧版本的batch_gather
-    """
-    if K.dtype(indices)[:3] != 'int':
-        indices = K.cast(indices, 'int32')
-
-    try:
-        return tf.gather(params, indices, batch_dims=K.ndim(indices) - 1)
-    except Exception as e1:
-        try:
-            return tf.batch_gather(params, indices)
-        except Exception as e2:
-            raise ValueError('%s\n%s\n' % (e1.message, e2.message))
-
-
 def sequence_masking(x, mask, value=0, axis=None):
     """为序列条件mask的函数
     mask: 形如(batch_size, seq_len)的0-1矩阵;
@@ -84,12 +69,6 @@ def sequence_masking(x, mask, value=0, axis=None):
         return x
 
 
-def root_mean_square(x, axis=None, keepdims=False):
-    """均方根, 相当于模长的变体
-    """
-    return K.sqrt(K.mean(K.square(x), axis=axis, keepdims=keepdims))
-
-
 def multilabel_categorical_crossentropy(y_true, y_pred):
     """多标签分类的交叉熵
     说明:
@@ -117,7 +96,6 @@ custom_objects = {
     'gelu_erf': gelu_erf,
     'gelu_tanh': gelu_tanh,
     'gelu': gelu_erf,
-    'root_mean_square': root_mean_square,
     'multilabel_categorical_crossentropy': multilabel_categorical_crossentropy
 }
 

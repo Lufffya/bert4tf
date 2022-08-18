@@ -3,7 +3,6 @@
 # 具体用法请看 https://github.com/bojone/bert4keras/blob/8ffb46a16a79f87aa8cdf045df7994036b4be47d/bert4keras/snippets.py#L580
 
 from snippets import *
-from collections import Counter
 from bert4tf.snippets import sequence_padding
 from bert4tf.snippets import AutoRegressiveDecoder
 
