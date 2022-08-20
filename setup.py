@@ -8,6 +8,6 @@ setup(
     url='https://github.com/Luffffffy/bert4tf',
     author='Luffy',
     author_email='571036709@qq.com',
-    install_requires=['tensorflow<=2.9.0'],
+    install_requires=['tensorflow>=2.9.0'],
     packages=find_packages()
 )
