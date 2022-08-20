@@ -1,5 +1,5 @@
 import json, numpy
-from bert4tf.layers import *
+from bert4tf2.layers import *
 from tensorflow.keras.models import Model
 from typing import Union, Optional, List, Dict, Any
 from tensorflow.python.framework.ops import Tensor

@@ -1,5 +1,5 @@
-from bert4tf.backend import tf, keras, K
-from bert4tf.backend import sequence_masking
+from bert4tf2.backend import tf, keras, K
+from bert4tf2.backend import sequence_masking
 from tensorflow.keras.layers import  *
 
 

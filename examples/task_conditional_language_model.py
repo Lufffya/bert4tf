@@ -3,10 +3,10 @@
 # 请参考: https://kexue.fm/archives/7124
 
 from snippets import *
-from bert4tf.tokenizer import load_vocab
-from bert4tf.layers import Loss, Embedding
-from bert4tf.snippets import sequence_padding, text_segmentate
-from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
+from bert4tf2.tokenizer import load_vocab
+from bert4tf2.layers import Loss, Embedding
+from bert4tf2.snippets import sequence_padding, text_segmentate
+from bert4tf2.snippets import DataGenerator, AutoRegressiveDecoder
 
 
 # 模型配置

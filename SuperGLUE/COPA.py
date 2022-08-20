@@ -3,7 +3,7 @@
 # 思路：每个选项分别与前提和问题拼接后打分排序
 
 from snippets import *
-from bert4tf.snippets import truncate_sequences
+from bert4tf2.snippets import truncate_sequences
 
 
 # 基本参数

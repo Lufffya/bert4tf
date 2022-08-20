@@ -4,8 +4,8 @@
 # (Accuracy=0.7282149325820084  F1=0.8207266829447049  Final=0.7744708077633566)
 
 from snippets import *
-from bert4tf.tokenizer import load_vocab
-from bert4tf.snippets import sequence_padding, DataGenerator
+from bert4tf2.tokenizer import load_vocab
+from bert4tf2.snippets import sequence_padding, DataGenerator
 
 
 max_p_len = 256

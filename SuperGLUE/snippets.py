@@ -5,13 +5,13 @@ import numpy as np
 import os, sys, csv, json
 from tqdm import tqdm
 from download import download
-sys.path.append('../bert4tf')
-from bert4tf.backend import set_gelu
-from bert4tf.backend import tf, keras, K
-from bert4tf.tokenizer import Tokenizer
-from bert4tf.bert import build_bert_model
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
+sys.path.append('../bert4tf2')
+from bert4tf2.backend import set_gelu
+from bert4tf2.backend import tf, keras, K
+from bert4tf2.tokenizer import Tokenizer
+from bert4tf2.bert import build_bert_model
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import DataGenerator
 
 
 download()

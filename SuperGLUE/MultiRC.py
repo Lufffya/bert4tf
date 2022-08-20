@@ -4,7 +4,7 @@
 
 from snippets import *
 from sklearn.metrics import f1_score
-from bert4tf.snippets import truncate_sequences
+from bert4tf2.snippets import truncate_sequences
 
 
 # 基本参数

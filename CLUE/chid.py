@@ -6,8 +6,8 @@ import numpy as np
 from tqdm import tqdm
 from snippets import *
 from itertools import groupby
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import DataGenerator
 from scipy.optimize import linear_sum_assignment
 
 

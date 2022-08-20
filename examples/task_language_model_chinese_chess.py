@@ -5,10 +5,10 @@
 # 因此如果需要交互式体验模型棋力, 那么需要在python3下进行
 
 from snippets import *
-from bert4tf.layers import Loss
-from bert4tf.tokenizer import load_vocab
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
+from bert4tf2.layers import Loss
+from bert4tf2.tokenizer import load_vocab
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import DataGenerator
 from cchess import *
 
 

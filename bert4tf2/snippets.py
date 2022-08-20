@@ -1,7 +1,7 @@
 import re
 import numpy as np
 import unicodedata
-from bert4tf.backend import tf, keras
+from bert4tf2.backend import tf, keras
 
 
 class DataGenerator(object):

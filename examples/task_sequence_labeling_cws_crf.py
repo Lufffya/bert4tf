@@ -4,9 +4,9 @@
 
 from this import d
 from snippets import *
-from bert4tf.snippets import sequence_padding, DataGenerator
-from bert4tf.snippets import to_array, ViterbiDecoder
-from bert4tf.layers import ConditionalRandomField
+from bert4tf2.snippets import sequence_padding, DataGenerator
+from bert4tf2.snippets import to_array, ViterbiDecoder
+from bert4tf2.layers import ConditionalRandomField
 
 
 maxlen = 256

@@ -6,9 +6,9 @@ import json
 import numpy as np
 from tqdm import tqdm
 from snippets import *
-from bert4tf.layers import GlobalPointer
-from bert4tf.snippets import sequence_padding, DataGenerator
-from bert4tf.backend import multilabel_categorical_crossentropy
+from bert4tf2.layers import GlobalPointer
+from bert4tf2.snippets import sequence_padding, DataGenerator
+from bert4tf2.backend import multilabel_categorical_crossentropy
 
 
 maxlen = 256

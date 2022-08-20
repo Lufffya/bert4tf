@@ -5,8 +5,8 @@
 
 
 from snippets import *
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import DataGenerator
 
 # gpus = tf.config.experimental.list_physical_devices(device_type='GPU')
 # for gpu in gpus:

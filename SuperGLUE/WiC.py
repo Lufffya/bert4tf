@@ -3,7 +3,7 @@
 # 思路：word, 句子1和句子2一起拼接后取[CLS]然后接Dense+Softmax分类
 
 from snippets import *
-from bert4tf.snippets import truncate_sequences
+from bert4tf2.snippets import truncate_sequences
 
 
 # 基本参数

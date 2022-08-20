@@ -1,7 +1,7 @@
 # bert 基础测试: 结合MLM的Gibbs采样
 
 from snippets import *
-from bert4tf.snippets import to_array
+from bert4tf2.snippets import to_array
 
 
 # 建立分词器

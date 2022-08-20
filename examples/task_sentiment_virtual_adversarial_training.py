@@ -4,8 +4,8 @@
 # 博客: https://kexue.fm/archives/7466
 
 from snippets import *
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import DataGenerator
 
 
 # 配置信息

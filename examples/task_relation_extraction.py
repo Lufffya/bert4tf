@@ -5,8 +5,8 @@
 # 说明: 由于使用了EMA, 需要跑足够多的步数(5000步以上）才生效, 如果你的数据总量比较少, 那么请务必跑足够多的epoch数, 或者去掉EMA.
 
 from snippets import *
-from bert4tf.snippets import to_array, sequence_padding, DataGenerator
-from bert4tf.layers import Loss, LayerNormalization
+from bert4tf2.snippets import to_array, sequence_padding, DataGenerator
+from bert4tf2.layers import Loss, LayerNormalization
 
 
 maxlen = 128

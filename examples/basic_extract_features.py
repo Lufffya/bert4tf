@@ -2,7 +2,7 @@
 # 如输入相同, 则表示bert权重加载正确
 
 from snippets import *
-from bert4tf.snippets import to_array
+from bert4tf2.snippets import to_array
 
 
 def bert_tf_embedding():

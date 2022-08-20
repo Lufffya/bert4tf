@@ -2,9 +2,9 @@
 # val_acc: 0.887071, test_acc: 0.870320
 
 from snippets import *
-from bert4tf.backend import set_gelu
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
+from bert4tf2.backend import set_gelu
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import DataGenerator
 
 
 set_gelu('tanh')  # 切换gelu版本

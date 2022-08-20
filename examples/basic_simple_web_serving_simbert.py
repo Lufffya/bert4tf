@@ -3,8 +3,8 @@
 # 具体用法请看 https://github.com/bojone/bert4keras/blob/8ffb46a16a79f87aa8cdf045df7994036b4be47d/bert4keras/snippets.py#L580
 
 from snippets import *
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import AutoRegressiveDecoder
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import AutoRegressiveDecoder
 
 
 maxlen = 32

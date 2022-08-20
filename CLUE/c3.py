@@ -4,9 +4,9 @@
 import json
 from tqdm import tqdm
 from snippets import *
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator
-from bert4tf.snippets import truncate_sequences
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import DataGenerator
+from bert4tf2.snippets import truncate_sequences
 
 
 # 基本参数

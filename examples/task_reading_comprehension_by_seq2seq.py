@@ -4,10 +4,10 @@
 # (Accuracy=0.7259005836184343  F1=0.813860036706151  Final=0.7698803101622926)
 
 from snippets import *
-from bert4tf.layers import Loss
-from bert4tf.tokenizer import load_vocab
-from bert4tf.snippets import sequence_padding
-from bert4tf.snippets import DataGenerator, AutoRegressiveDecoder
+from bert4tf2.layers import Loss
+from bert4tf2.tokenizer import load_vocab
+from bert4tf2.snippets import sequence_padding
+from bert4tf2.snippets import DataGenerator, AutoRegressiveDecoder
 
 
 max_p_len = 256

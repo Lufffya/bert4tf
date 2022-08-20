@@ -6,9 +6,9 @@ import numpy as np
 from tqdm import tqdm
 from snippets import *
 from itertools import groupby
-from bert4tf.layers import GlobalPointer
-from bert4tf.snippets import sequence_padding, DataGenerator
-from bert4tf.snippets import lowercase_and_normalize
+from bert4tf2.layers import GlobalPointer
+from bert4tf2.snippets import sequence_padding, DataGenerator
+from bert4tf2.snippets import lowercase_and_normalize
 
 
 # 基本参数

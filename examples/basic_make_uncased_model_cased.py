@@ -2,8 +2,8 @@
 # 基本思路：将英文单词大写化后添加到词表中，并修改模型Embedding层
 
 from snippets import *
-from bert4tf.snippets import to_array
-from bert4tf.tokenizer import load_vocab
+from bert4tf2.snippets import to_array
+from bert4tf2.tokenizer import load_vocab
 
 
 token_dict = load_vocab(dict_path_zh)

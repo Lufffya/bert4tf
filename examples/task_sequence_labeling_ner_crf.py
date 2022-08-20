@@ -3,9 +3,9 @@
 # 实测验证集的F1可以到96.48%，测试集的F1可以到95.38%
 
 from snippets import *
-from bert4tf.snippets import sequence_padding, DataGenerator
-from bert4tf.snippets import to_array, ViterbiDecoder
-from bert4tf.layers import ConditionalRandomField
+from bert4tf2.snippets import sequence_padding, DataGenerator
+from bert4tf2.snippets import to_array, ViterbiDecoder
+from bert4tf2.layers import ConditionalRandomField
 
 
 maxlen = 256

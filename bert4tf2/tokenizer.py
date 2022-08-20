@@ -1,6 +1,6 @@
 import re, unicodedata
-from bert4tf.snippets import truncate_sequences
-from bert4tf.snippets import lowercase_and_normalize
+from bert4tf2.snippets import truncate_sequences
+from bert4tf2.snippets import lowercase_and_normalize
 
 
 def load_vocab(dict_path, encoding='utf-8', simplified=False, startswith=None):
