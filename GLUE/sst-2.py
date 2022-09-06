@@ -8,6 +8,7 @@ from snippets import *
 num_classes = 2
 maxlen = 128
 batch_size = 32
+epochs = 2
 
 
 def load_data(filename):
@@ -136,7 +137,7 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=2, callbacks=[evaluator])
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
 
     # model.load_weights('best_model_SST-2.weights')
     # test_predict(in_file = './datasets/SST-2/test.tsv', out_file = './results/SST-2.tsv')

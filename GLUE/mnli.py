@@ -10,6 +10,7 @@ labels = ['entailment', 'neutral', 'contradiction']
 num_classes = len(labels)
 maxlen = 128
 batch_size = 32
+epochs = 2
 
 
 def load_data_train(filename):
@@ -157,7 +158,7 @@ def test_predict(in_file, out_file):
 if __name__ == '__main__':
     evaluator = Evaluator()
 
-    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=2, callbacks=[evaluator])
+    model.fit(train_generator.forfit(), steps_per_epoch=len(train_generator), epochs=epochs, callbacks=[evaluator])
     
     # model.load_weights('best_model_MNLI.weights')
     # test_predict(in_file = './datasets/MNLI/test_matched.tsv', out_file = './results/MNLI-m.tsv')

@@ -2,7 +2,7 @@
 
 import os, sys
 from download import download
-sys.path.append('../bert4tf2')
+sys.path.append('../bert4tf')
 from bert4tf2.backend import tf, keras, K
 from bert4tf2.tokenizer import Tokenizer
 from bert4tf2.bert import build_bert_model

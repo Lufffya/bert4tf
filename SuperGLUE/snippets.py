@@ -5,7 +5,7 @@ import numpy as np
 import os, sys, csv, json
 from tqdm import tqdm
 from download import download
-sys.path.append('../bert4tf2')
+sys.path.append('../bert4tf')
 from bert4tf2.backend import set_gelu
 from bert4tf2.backend import tf, keras, K
 from bert4tf2.tokenizer import Tokenizer
